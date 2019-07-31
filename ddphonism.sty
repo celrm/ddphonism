@@ -1,0 +1,190 @@
+% ddphonism
+% 
+% (c) Celia Rubio Madrigal
+%
+%% This program can be redistributed and/or modified under the terms
+%% of the LaTeX Project Public License Distributed from CTAN archives
+%% in directory macros/latex/base/lppl.txt.
+% 
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{ddphonism}
+[2019/04/05 v0.1 LaTeX package for dodecaphonism matrices, clock diagrams et al.]
+
+\RequirePackage{ifthen}
+\RequirePackage{xparse}
+\RequirePackage{tikz}
+\RequirePackage{xstring}
+\RequirePackage{pgfkeys}
+%\setcounter{MaxMatrixCols}{30}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Matrices ¬\label{app:latex1}¬
+
+\usetikzlibrary{matrix}
+
+\ExplSyntaxOn
+\DeclareExpandableDocumentCommand{\eval}{m}{\int_eval:n {#1}}
+\ExplSyntaxOff
+
+\newcounter{dfirst}
+\newcounter{dsize}
+
+\newcommand{\dSizeHead}[1]{
+	\setcounter{dsize}{0}
+	\setcounter{dfirst}{-1}
+	
+	\foreach \n in {#1}{
+		\ifnum\thedfirst=-1
+		\setcounter{dfirst}{\n}
+		\fi
+		\stepcounter{dsize}
+	}
+}
+
+\newcommand{\md}[1]{ % mod
+	\ifnum#1>\eval{\thedsize-1}
+		\eval{#1-\thedsize}
+	\else\ifnum#1<0
+		\eval{#1+\thedsize}
+	\else #1
+	\fi\fi
+}
+
+\newcommand{\dmatrix}[1]{
+	\dSizeHead{#1}
+	\resizebox{\linewidth}{!}{
+	\begin{tikzpicture}
+%		\draw (0,0) -- (\thedsize,0); \draw (0,0) -- (0,-\thedsize/2);
+		\foreach [count=\nj] \j in {#1} {
+%			\draw (0,-\nj/2) -- (\thedsize,-\nj/2); \draw (\nj,0) -- (\nj,-\thedsize/2);
+			\foreach [count=\ni] \i in {#1} {
+				\draw node at (\ni-0.5,-\nj/2+0.25) {
+					\md{\eval{\i-\j+\thedfirst}}
+				};
+			}
+		}
+	\end{tikzpicture}
+	}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Diagrams ¬\label{app:latex2}¬
+
+\usetikzlibrary{shapes,arrows,decorations.markings,shapes.misc}
+
+\tikzstyle ddiagramArrow=[decoration=
+		{markings,mark=at position 0.25 with {\arrow[scale=1.25,>=triangle 45]{>}}},
+	postaction={decorate}]
+
+\newcounter{anterior}
+\newcounter{var}
+\newcommand{\ddiagram}[3][-1]{
+	\dSizeHead{#2}	
+	
+	\ifnum #1=-1
+	\setcounter{var}{\thedfirst}
+	\else
+	\setcounter{var}{#1}
+	\fi
+	
+	\begin{tikzpicture}[rotate=30*\thevar,
+		minimum height=0pt,inner sep=0pt,outer sep=0pt,scale=0.65]
+	\foreach \x in {0,...,\eval{\thedsize-1}} {
+		\node at (90-30*\x:2) {\x};
+		\node (\x) at (90-30*\x:1.6) {};
+	};
+	
+	\setcounter{anterior}{-1}
+	\foreach \x in {#2}{%
+		\ifnum \theanterior=\thedfirst
+		\draw [style=ddiagramArrow] (\theanterior) -- (\x);
+		\else \ifnum \theanterior=-1
+		\else
+		\draw (\theanterior) -- (\x);
+		\fi\fi
+		\setcounter{anterior}{\x}
+	};
+	\draw (\theanterior) -- (\thedfirst);
+	
+	\node at (0,0) [circle,fill=white] {#3};
+	\end{tikzpicture}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Dihedral diagrams ¬\label{app:latex3}¬
+
+\tikzstyle ddihedralArrow=[decoration=
+		{markings,mark=at position 1 with {\arrow[scale=1.5,>=angle 60]{>}}},
+	postaction={decorate}]
+
+\pgfkeys{
+	/ddihedral/.is family, /ddihedral,
+	default/.style = {t = 0, c = 0, s = 0, v = 0},
+	t/.estore in = \ddihedralT,
+	c/.estore in = \ddihedralC,
+	s/.estore in = \ddihedralS,
+	v/.estore in = \ddihedralV,
+}
+
+\newcommand{\darrows}[1]{
+	\dSizeHead{#1}
+	\draw foreach \x in {0,...,\eval{\thedsize-1}} {(90-30*\x:2.5) node[circle] (\x) {}};
+	\foreach \x [count=\y] in {#1} {
+		\draw [style=ddihedralArrow] (90-30*\eval{\y-1}:1.25) -- (\x);
+	};	
+}
+
+\newcommand\ddihedral[2][]{%
+	\pgfkeys{/ddihedral, default, #1}%
+	
+	\tikzset{inner sep=0,minimum height=18pt}
+	
+	\dSizeHead{#2}
+	
+	\draw foreach \x in {0,...,\eval{\thedsize-1}} {
+		(\eval{(90+\ddihedralT*30)+(\ddihedralS*60-30)*\x}:2.5) 
+		node[very thin,circle,draw] (\x) {\x}
+	};
+	
+	\draw foreach \x in {0,...,\eval{\thedsize-1}} {
+		(\eval{(90-\ddihedralC*30)+(\ddihedralV*60-30)*\x}:1.25) 
+		node[very thin,circle,draw] {\x}
+	};
+	
+	\darrows{#2}
+	
+	\node at (0,0) [very thin,draw,circle, fill=white] {\	
+		\ifnum\ddihedralV=0
+		\ifnum\ddihedralC=0
+		\ifnum\ddihedralS=0
+		\ifnum\ddihedralT=0
+		P
+		\fi\fi\fi
+		\else V \fi
+		\ifnum\ddihedralC=0
+		\else C$^{\ddihedralC}$ \fi
+		\ifnum\ddihedralS=0
+		\else S \fi
+		\ifnum\ddihedralT=0
+		\else T$^{\ddihedralT}$ \fi
+	\ };
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Rows ¬\label{app:latex4}¬
+
+%\eval{\thedsize-1}
+
+\newcommand{\drow}[1]{
+	\ensuremath{
+		\left(\begin{array}{*{12}c}
+			0&1&2&3&4&5&6&7&8&9&10&11\\
+			\StrSubstitute{#1}{,}{&}\\
+		\end{array}\right)
+	}
+}
+
+\endinput
+
+%%
+%% End of file `ddphonism.sty'.
