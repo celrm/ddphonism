@@ -26,41 +26,95 @@
 \DeclareExpandableDocumentCommand{\Evaluation}{m}{\int_eval:n {#1}}
 \ExplSyntaxOff
 
-\newcounter{Dfirst}
 \newcounter{Dsize}
-
-\newcommand{\DsizeHead}[1]{
-	\setcounter{Dsize}{0}
-	\setcounter{Dfirst}{-1}
-	
-	\foreach \n in {#1}{
-		\ifnum\theDfirst=-1
-		\setcounter{Dfirst}{\n}
-		\fi
-		\stepcounter{Dsize}
-	}
+\newcommand{\DsizeMake}[1]{%
+	\setcounter{Dsize}{0}%
+	\foreach \n in {#1}{%
+		\stepcounter{Dsize}%
+	}%
 }
 
-\newcommand{\Modulo}[1]{
-	\ifnum#1>\Evaluation{\theDsize-1}
-		\Evaluation{#1-\theDsize}
-	\else\ifnum#1<0
-		\Evaluation{#1+\theDsize}
-	\else #1
-	\fi\fi
+% Only with numbers.
+\newcounter{Dfirst}
+\newcommand{\DheadMake}[1]{%
+	\setcounter{Dfirst}{-1}%
+	\foreach \n in {#1}{%
+		\ifnum\theDfirst=-1%
+		\setcounter{Dfirst}{\n}%
+		\fi%
+	}%
 }
 
-\newcommand{\dmatrix}[1]{
-	\DsizeHead{#1}
-	\begin{tikzpicture}
-		\foreach [count=\nj] \j in {#1} {
-			\foreach [count=\ni] \i in {#1} {
-				\draw node at (\ni-0.5,-\nj/2+0.25) {
-					\Modulo{\Evaluation{\i-\j+\theDfirst}}
-				};
-			}
+% Only when DsizeMake is already done.
+\newcounter{Dmod}
+\newcommand{\Modulo}[1]{%
+	\setcounter{Dmod}{#1}
+	\loop%
+	\ifnum\theDmod>\Evaluation{\theDsize-1}%		
+		\setcounter{Dmod}{\Evaluation{\theDmod-\theDsize}}%
+		\repeat%
+	\ifnum\theDmod<0%
+		\setcounter{Dmod}{\Evaluation{\theDmod+\theDsize}}%
+		\repeat%
+	\theDmod%
+}
+
+\newif\ifdmatrixLines
+\newif\ifdmatrixOutside
+\newif\ifdmatrixInside
+\pgfkeys{
+	/dmatrix/.is family
+	, /dmatrix
+	, default/.style = 
+		{ lines = false
+		, outside lines = false
+		, inside lines = false
+		, scale = 1
 		}
-	\end{tikzpicture}
+	, lines/.is if=dmatrixLines
+	, outside lines/.is if=dmatrixOutside
+	, inside lines/.is if=dmatrixInside
+	, scale/.estore in=\dmatrixScale
+}
+
+\newcommand{\DmatrixOutside}{%	
+	\draw (0.05,0) -- (\theDsize+0.05,0);%
+	\draw (0.05,-\theDsize*0.5) -- (\theDsize+0.05,-\theDsize*0.5);%
+	\draw (0.05,0) -- (0.05,-\theDsize*0.5);%
+	\draw (\theDsize+0.05,0) -- (\theDsize+0.05,-\theDsize*0.5);%
+}
+
+\newcommand{\DmatrixInside}{%
+	\foreach \xD in {1,...,\Evaluation{\theDsize-1}} {%
+		\draw (\xD+0.05,0) -- (\xD+0.05,-\theDsize*0.5);%
+		\draw (0.05,-\xD*0.5) -- (\theDsize+0.05,-\xD*0.5);%
+	}%
+}
+
+\newcommand{\dmatrix}[2][]{%
+	\pgfkeys{/dmatrix, default, #1}%
+	\DsizeMake{#2}%
+	\DheadMake{#2}%
+	\begin{tikzpicture}[scale=\dmatrixScale]%
+		\foreach [count=\nj] \j in {#2} {%
+			\foreach [count=\ni] \i in {#2} {%
+				\draw node at (\ni-0.5,-\nj/2+0.25) {%
+					\Modulo{\Evaluation{\i-\j+\theDfirst}}%
+				};%
+			}%
+		}%
+		\ifdmatrixLines%
+			\DmatrixInside%
+			\DmatrixOutside%
+		\else%
+			\ifdmatrixOutside%
+				\DmatrixOutside%
+			\fi%
+			\ifdmatrixInside%
+				\DmatrixInside%
+			\fi%
+		\fi%
+	\end{tikzpicture}%
 }
 
 
@@ -74,40 +128,40 @@
 			{\arrow[scale=1.25,>=triangle 45]{>}}},
 	postaction={decorate}]
 
-\newcounter{anterior}
-\newcounter{var}
-\newcommand{\ddiagram}[3][-1]{
-	\DsizeHead{#2}
-	\def\theDDfirst{\Evaluation{\Modulo{\theDfirst}}}
-	
-	\ifnum #1=-1
-	\setcounter{var}{\theDDfirst}
-	\else
-	\setcounter{var}{#1}
-	\fi
-	
-	\begin{tikzpicture}[rotate=360*\thevar/\theDsize,
-		minimum height=0pt,inner sep=0pt,outer sep=0pt,scale=0.65]
-	\foreach \x in {0,...,\Evaluation{\theDsize-1}} {
-		\node at (90-360*\x/\theDsize:2) {\x};
-		\node (\x) at (90-360*\x/\theDsize:1.6) {};
-	};
-	
-	\setcounter{anterior}{-1}
-	\foreach \xD in {#2}{
-		\def\x{\Evaluation{\Modulo{\xD}}}
-		\ifnum \theanterior=\theDDfirst
-		\draw [style=ddiagramArrow] (\theanterior) -- (\x);
-		\else \ifnum \theanterior=-1
-		\else
-		\draw (\theanterior) -- (\x);
-		\fi\fi
-		\setcounter{anterior}{\x}
-	};
-	\draw (\theanterior) -- (\theDDfirst);
-	
-	\node at (0,0) [circle,fill=white] {#3};
-	\end{tikzpicture}
+\newcounter{Dprev}
+\newcounter{Dvar}
+
+\newcommand{\ddiagram}[3][-1]{%
+	\DsizeMake{#2}%
+	\DheadMake{#2}%
+	%
+	\ifnum #1=-1%
+	\setcounter{Dvar}{\theDfirst}%
+	\else\setcounter{Dvar}{#1}%
+	\fi%
+	%
+	\begin{tikzpicture}[rotate=360*\theDvar/\theDsize,%
+		minimum height=0pt,inner sep=0pt,outer sep=0pt,scale=0.65]%
+	\foreach \x in {0,...,\Evaluation{\theDsize-1}} {%
+		\node at (90-360*\x/\theDsize:2) {\x};%
+		\node (\x) at (90-360*\x/\theDsize:1.6) {};%
+	};%
+	%
+	\setcounter{Dprev}{-1}%
+	\foreach \xD in {#2}{%
+		\def\x{\Evaluation{\Modulo{\xD}}}%
+		\ifnum \theDprev=\theDfirst%
+		\draw [style=ddiagramArrow] (\theDprev) -- (\x);%
+		\else \ifnum \theDprev=-1%
+		\else%
+		\draw (\theDprev) -- (\x);%
+		\fi\fi%
+		\setcounter{Dprev}{\x}%
+	};%
+	\draw (\theDprev) -- (\theDfirst);%
+	%
+	\node at (0,0) [circle,fill=white] {#3};%
+	\end{tikzpicture}%
 }
 
 
@@ -127,74 +181,75 @@
 	v/.estore in = \ddihedralV,
 }
 
-\newcommand{\darrows}[1]{
-	\DsizeHead{#1}
-	\draw foreach \x in {0,...,\Evaluation{\theDsize-1}} {
-		(90-360*\x/\theDsize:2.5) node[circle] (\x) {}
-	};
-	\foreach \xD [count=\y] in {#1} {
-		\def\x{\Evaluation{\Modulo{\xD}}}
-		\draw [style=ddihedralArrow] (90-360*\Evaluation{\y-1}/\theDsize:1.25) -- (\x);
-	};	
+\newcommand{\darrows}[1]{%
+	\DsizeMake{#1}%
+	\draw foreach \x in {0,...,\Evaluation{\theDsize-1}} {%
+		(90-360*\x/\theDsize:2.5) node[circle] (\x) {}%
+	};%
+	\foreach \xD [count=\y] in {#1} {%
+		\def\x{\Evaluation{\Modulo{\xD}}}%
+		\draw [style=ddihedralArrow] (90-360*\Evaluation{\y-1}/\theDsize:1.25) -- (\x);%
+	};%
 }
 
-\newcommand\ddihedral[2][]{
-	\pgfkeys{/ddihedral, default, #1}
-	
-	\tikzset{inner sep=0,minimum height=18pt}
-	
-	\DsizeHead{#2}
-	
-	\draw foreach \x in {0,...,\Evaluation{\theDsize-1}} {
-		(\Evaluation{(90+\ddihedralT*360/\theDsize)+(2*\ddihedralS-1)*\x*360/\theDsize}:2.5) 
-		node[very thin,circle,draw] (\x) {\x}
-	};
-	
-	\draw foreach \x in {0,...,\Evaluation{\theDsize-1}} {
-		(\Evaluation{(90-\ddihedralC*360/\theDsize)+(2*\ddihedralV-1)*\x*360/\theDsize}:1.25) 
-		node[very thin,circle,draw] {\x}
-	};
-	
-	\darrows{#2}
-	
-	\node at (0,0) [very thin,draw,circle, fill=white] {\	
-		\ifnum\ddihedralV=0
-		\ifnum\ddihedralC=0
-		\ifnum\ddihedralS=0
-		\ifnum\ddihedralT=0
-		P
-		\fi\fi\fi
-		\else V \fi
-		\ifnum\ddihedralC=0
-		\else C$^{\ddihedralC}$ \fi
-		\ifnum\ddihedralS=0
-		\else S \fi
-		\ifnum\ddihedralT=0
-		\else T$^{\ddihedralT}$ \fi
-	\ };
+\newcommand\ddihedral[2][]{%
+	\pgfkeys{/ddihedral, default, #1}%
+	%
+	\tikzset{inner sep=0,minimum height=18pt}%
+	%
+	\DsizeMake{#2}%
+	%
+	\draw foreach \x in {0,...,\Evaluation{\theDsize-1}} {%
+		(\Evaluation{(90+\ddihedralT*360/\theDsize)+(2*\ddihedralS-1)*\x*360/\theDsize}:2.5)%
+		node[very thin,circle,draw] (\x) {\x}%
+	};%
+	%
+	\draw foreach \x in {0,...,\Evaluation{\theDsize-1}} {%
+		(\Evaluation{(90-\ddihedralC*360/\theDsize)+(2*\ddihedralV-1)*\x*360/\theDsize}:1.25)%
+		node[very thin,circle,draw] {\x}%
+	};%
+	%
+	\darrows{#2}%
+	%
+	\node at (0,0) [very thin,draw,circle, fill=white] {\ %
+		\ifnum\ddihedralV=0%
+		\ifnum\ddihedralC=0%
+		\ifnum\ddihedralS=0%
+		\ifnum\ddihedralT=0%
+		P%
+		\fi\fi\fi%
+		\else V \fi%
+		\ifnum\ddihedralC=0%
+		\else C$^{\ddihedralC}$ \fi%
+		\ifnum\ddihedralS=0%
+		\else S \fi%
+		\ifnum\ddihedralT=0%
+		\else T$^{\ddihedralT}$ \fi%
+	\ };%
 }
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Rows
 
-\newcount\fooo
 \long\def\addto#1#2{\expandafter\def\expandafter#1\expandafter{#1#2}}
 \newcounter{myDDcntr}
 	
-\newcommand{\drow}[1]{	
-	\DsizeHead{#1}
-	\def\tabledata{} \fooo=\theDsize
-	\setcounter{myDDcntr}{0}		
-	\loop
-	\addto\tabledata{\themyDDcntr\stepcounter{myDDcntr} &}
-	\advance \fooo -1
-	\ifnum \fooo>1
-	\repeat
-	\addto\tabledata{\themyDDcntr \\}		
-	\ensuremath{
-		\left(\begin{array}{*{\theDsize}c}
-			\tabledata
+\newcommand{\drow}[1]{%
+	\DsizeMake{#1}%
+	\def\TableDDdata{}%
+	\setcounter{myDDcntr}{0}%
+	\loop%
+		\addto\TableDDdata{\themyDDcntr\stepcounter{myDDcntr} &}%
+		\stepcounter{myDDcntr}%
+		\ifnum\themyDDcntr<\Evaluation{\theDsize-1}%
+		\repeat%
+	\addto\TableDDdata{\themyDDcntr \\}%
+	\setcounter{myDDcntr}{0}%
+	%
+	\ensuremath{%
+		\left(\begin{array}{*{\theDsize}c}%
+			\TableDDdata
 			\StrSubstitute{#1}{,}{&}\\
 		\end{array}\right)
 	}
