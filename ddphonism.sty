@@ -141,25 +141,24 @@
 	\fi%
 	%
 	\begin{tikzpicture}[rotate=360*\theDvar/\theDsize,%
-		minimum height=0pt,inner sep=0pt,outer sep=0pt,scale=0.65]%
+	minimum height=0pt,inner sep=0pt,outer sep=0pt,scale=0.65]%
 	\foreach \x in {0,...,\Evaluation{\theDsize-1}} {%
 		\node at (90-360*\x/\theDsize:2) {\x};%
 		\node (\x) at (90-360*\x/\theDsize:1.6) {};%
 	};%
 	%
 	\setcounter{Dprev}{-1}%
-	\foreach \xD in {#2}{%
-		\def\x{\Evaluation{\Modulo{\xD}}}%
-		\ifnum \theDprev=\theDfirst%
-		\draw [style=ddiagramArrow] (\theDprev) -- (\x);%
-		\else \ifnum \theDprev=-1%
-		\else%
-		\draw (\theDprev) -- (\x);%
-		\fi\fi%
-		\setcounter{Dprev}{\x}%
-	};%
-	\draw (\theDprev) -- (\theDfirst);%
-	%
+	\foreach \x in {#2}{
+		\ifnum \theDprev=\theDfirst
+		\draw [style=ddiagramArrow] (\theDprev) -- (\x);
+		\else \ifnum \theDprev=-1
+		\else
+		\draw (\theDprev) -- (\x);
+		\fi\fi
+		\setcounter{Dprev}{\x}
+	};
+	\draw (\theDprev) -- (\theDfirst);
+	
 	\node at (0,0) [circle,fill=white] {#3};%
 	\end{tikzpicture}%
 }
@@ -186,8 +185,7 @@
 	\draw foreach \x in {0,...,\Evaluation{\theDsize-1}} {%
 		(90-360*\x/\theDsize:2.5) node[circle] (\x) {}%
 	};%
-	\foreach \xD [count=\y] in {#1} {%
-		\def\x{\Evaluation{\Modulo{\xD}}}%
+	\foreach \x [count=\y] in {#1} {%
 		\draw [style=ddihedralArrow] (90-360*\Evaluation{\y-1}/\theDsize:1.25) -- (\x);%
 	};%
 }
@@ -237,22 +235,33 @@
 	
 \newcommand{\drow}[1]{%
 	\DsizeMake{#1}%
-	\def\TableDDdata{}%
-	\setcounter{myDDcntr}{0}%
-	\loop%
-		\addto\TableDDdata{\themyDDcntr\stepcounter{myDDcntr} &}%
-		\stepcounter{myDDcntr}%
-		\ifnum\themyDDcntr<\Evaluation{\theDsize-1}%
-		\repeat%
-	\addto\TableDDdata{\themyDDcntr \\}%
-	\setcounter{myDDcntr}{0}%
-	%
-	\ensuremath{%
-		\left(\begin{array}{*{\theDsize}c}%
-			\TableDDdata
-			\StrSubstitute{#1}{,}{&}\\
-		\end{array}\right)
-	}
+	\ifnum\theDsize=0%
+		\ensuremath{\left(\right)}%
+	\else\ifnum\theDsize=1%
+		\ensuremath{%
+			\left(\begin{array}{*{\theDsize}c}%
+				0\\%
+				#1\\%
+			\end{array}\right)%
+		}%
+	\else%
+		\def\TableDDdata{}%
+		\setcounter{myDDcntr}{0}%
+		\loop%
+			\addto\TableDDdata{\themyDDcntr\stepcounter{myDDcntr} &}%
+			\stepcounter{myDDcntr}%
+			\ifnum\themyDDcntr<\Evaluation{\theDsize-1}%
+			\repeat%
+		\addto\TableDDdata{\themyDDcntr \\}%
+		\setcounter{myDDcntr}{0}%
+		%
+		\ensuremath{%
+			\left(\begin{array}{*{\theDsize}c}%
+				\TableDDdata%
+				\StrSubstitute{#1}{,}{&}\\%
+			\end{array}\right)%
+		}%
+	\fi\fi
 }
 
 \endinput
