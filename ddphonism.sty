@@ -5,98 +5,98 @@
 %% This program can be redistributed and/or modified under the terms
 %% of the LaTeX Project Public License Distributed from CTAN archives
 %% in directory macros/latex/base/lppl.txt.
-% 
-\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+ 
+\NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{ddphonism}
-[2019/04/05 v0.1 LaTeX package for dodecaphonism matrices, clock diagrams et al.]
+[2019/08/10 v0.1 LaTeX package for twelve-tone matrices, clock diagrams et al.]
 
 \RequirePackage{ifthen}
 \RequirePackage{xparse}
 \RequirePackage{tikz}
 \RequirePackage{xstring}
 \RequirePackage{pgfkeys}
-%\setcounter{MaxMatrixCols}{30}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Matrices ¬\label{app:latex1}¬
+% Matrices
 
 \usetikzlibrary{matrix}
 
 \ExplSyntaxOn
-\DeclareExpandableDocumentCommand{\eval}{m}{\int_eval:n {#1}}
+\DeclareExpandableDocumentCommand{\Evaluation}{m}{\int_eval:n {#1}}
 \ExplSyntaxOff
 
-\newcounter{dfirst}
-\newcounter{dsize}
+\newcounter{Dfirst}
+\newcounter{Dsize}
 
-\newcommand{\dSizeHead}[1]{
-	\setcounter{dsize}{0}
-	\setcounter{dfirst}{-1}
+\newcommand{\DsizeHead}[1]{
+	\setcounter{Dsize}{0}
+	\setcounter{Dfirst}{-1}
 	
 	\foreach \n in {#1}{
-		\ifnum\thedfirst=-1
-		\setcounter{dfirst}{\n}
+		\ifnum\theDfirst=-1
+		\setcounter{Dfirst}{\n}
 		\fi
-		\stepcounter{dsize}
+		\stepcounter{Dsize}
 	}
 }
 
-\newcommand{\md}[1]{ % mod
-	\ifnum#1>\eval{\thedsize-1}
-		\eval{#1-\thedsize}
+\newcommand{\Modulo}[1]{
+	\ifnum#1>\Evaluation{\theDsize-1}
+		\Evaluation{#1-\theDsize}
 	\else\ifnum#1<0
-		\eval{#1+\thedsize}
+		\Evaluation{#1+\theDsize}
 	\else #1
 	\fi\fi
 }
 
 \newcommand{\dmatrix}[1]{
-	\dSizeHead{#1}
-	\resizebox{\linewidth}{!}{
+	\DsizeHead{#1}
 	\begin{tikzpicture}
-%		\draw (0,0) -- (\thedsize,0); \draw (0,0) -- (0,-\thedsize/2);
 		\foreach [count=\nj] \j in {#1} {
-%			\draw (0,-\nj/2) -- (\thedsize,-\nj/2); \draw (\nj,0) -- (\nj,-\thedsize/2);
 			\foreach [count=\ni] \i in {#1} {
 				\draw node at (\ni-0.5,-\nj/2+0.25) {
-					\md{\eval{\i-\j+\thedfirst}}
+					\Modulo{\Evaluation{\i-\j+\theDfirst}}
 				};
 			}
 		}
 	\end{tikzpicture}
-	}
 }
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Diagrams ¬\label{app:latex2}¬
+% Diagrams
 
 \usetikzlibrary{shapes,arrows,decorations.markings,shapes.misc}
 
 \tikzstyle ddiagramArrow=[decoration=
-		{markings,mark=at position 0.25 with {\arrow[scale=1.25,>=triangle 45]{>}}},
+		{markings,mark=at position 0.25 with
+			{\arrow[scale=1.25,>=triangle 45]{>}}},
 	postaction={decorate}]
 
 \newcounter{anterior}
 \newcounter{var}
 \newcommand{\ddiagram}[3][-1]{
-	\dSizeHead{#2}	
+	\DsizeHead{#2}
+	\def\theDDfirst{\Evaluation{\Modulo{\theDfirst}}}
 	
 	\ifnum #1=-1
-	\setcounter{var}{\thedfirst}
+	\setcounter{var}{\theDDfirst}
 	\else
 	\setcounter{var}{#1}
 	\fi
 	
-	\begin{tikzpicture}[rotate=30*\thevar,
+	\begin{tikzpicture}[rotate=360*\thevar/\theDsize,
 		minimum height=0pt,inner sep=0pt,outer sep=0pt,scale=0.65]
-	\foreach \x in {0,...,\eval{\thedsize-1}} {
-		\node at (90-30*\x:2) {\x};
-		\node (\x) at (90-30*\x:1.6) {};
+	\foreach \x in {0,...,\Evaluation{\theDsize-1}} {
+		\node at (90-360*\x/\theDsize:2) {\x};
+		\node (\x) at (90-360*\x/\theDsize:1.6) {};
 	};
 	
 	\setcounter{anterior}{-1}
-	\foreach \x in {#2}{%
-		\ifnum \theanterior=\thedfirst
+	\foreach \xD in {#2}{
+		\def\x{\Evaluation{\Modulo{\xD}}}
+		\ifnum \theanterior=\theDDfirst
 		\draw [style=ddiagramArrow] (\theanterior) -- (\x);
 		\else \ifnum \theanterior=-1
 		\else
@@ -104,14 +104,15 @@
 		\fi\fi
 		\setcounter{anterior}{\x}
 	};
-	\draw (\theanterior) -- (\thedfirst);
+	\draw (\theanterior) -- (\theDDfirst);
 	
 	\node at (0,0) [circle,fill=white] {#3};
 	\end{tikzpicture}
 }
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Dihedral diagrams ¬\label{app:latex3}¬
+% Dihedral diagrams
 
 \tikzstyle ddihedralArrow=[decoration=
 		{markings,mark=at position 1 with {\arrow[scale=1.5,>=angle 60]{>}}},
@@ -127,27 +128,30 @@
 }
 
 \newcommand{\darrows}[1]{
-	\dSizeHead{#1}
-	\draw foreach \x in {0,...,\eval{\thedsize-1}} {(90-30*\x:2.5) node[circle] (\x) {}};
-	\foreach \x [count=\y] in {#1} {
-		\draw [style=ddihedralArrow] (90-30*\eval{\y-1}:1.25) -- (\x);
+	\DsizeHead{#1}
+	\draw foreach \x in {0,...,\Evaluation{\theDsize-1}} {
+		(90-360*\x/\theDsize:2.5) node[circle] (\x) {}
+	};
+	\foreach \xD [count=\y] in {#1} {
+		\def\x{\Evaluation{\Modulo{\xD}}}
+		\draw [style=ddihedralArrow] (90-360*\Evaluation{\y-1}/\theDsize:1.25) -- (\x);
 	};	
 }
 
-\newcommand\ddihedral[2][]{%
-	\pgfkeys{/ddihedral, default, #1}%
+\newcommand\ddihedral[2][]{
+	\pgfkeys{/ddihedral, default, #1}
 	
 	\tikzset{inner sep=0,minimum height=18pt}
 	
-	\dSizeHead{#2}
+	\DsizeHead{#2}
 	
-	\draw foreach \x in {0,...,\eval{\thedsize-1}} {
-		(\eval{(90+\ddihedralT*30)+(\ddihedralS*60-30)*\x}:2.5) 
+	\draw foreach \x in {0,...,\Evaluation{\theDsize-1}} {
+		(\Evaluation{(90+\ddihedralT*360/\theDsize)+(2*\ddihedralS-1)*\x*360/\theDsize}:2.5) 
 		node[very thin,circle,draw] (\x) {\x}
 	};
 	
-	\draw foreach \x in {0,...,\eval{\thedsize-1}} {
-		(\eval{(90-\ddihedralC*30)+(\ddihedralV*60-30)*\x}:1.25) 
+	\draw foreach \x in {0,...,\Evaluation{\theDsize-1}} {
+		(\Evaluation{(90-\ddihedralC*360/\theDsize)+(2*\ddihedralV-1)*\x*360/\theDsize}:1.25) 
 		node[very thin,circle,draw] {\x}
 	};
 	
@@ -170,15 +174,27 @@
 	\ };
 }
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Rows ¬\label{app:latex4}¬
+% Rows
 
-%\eval{\thedsize-1}
-
-\newcommand{\drow}[1]{
+\newcount\fooo
+\long\def\addto#1#2{\expandafter\def\expandafter#1\expandafter{#1#2}}
+\newcounter{myDDcntr}
+	
+\newcommand{\drow}[1]{	
+	\DsizeHead{#1}
+	\def\tabledata{} \fooo=\theDsize
+	\setcounter{myDDcntr}{0}		
+	\loop
+	\addto\tabledata{\themyDDcntr\stepcounter{myDDcntr} &}
+	\advance \fooo -1
+	\ifnum \fooo>1
+	\repeat
+	\addto\tabledata{\themyDDcntr \\}		
 	\ensuremath{
-		\left(\begin{array}{*{12}c}
-			0&1&2&3&4&5&6&7&8&9&10&11\\
+		\left(\begin{array}{*{\theDsize}c}
+			\tabledata
 			\StrSubstitute{#1}{,}{&}\\
 		\end{array}\right)
 	}
@@ -186,5 +202,5 @@
 
 \endinput
 
-%%
+
 %% End of file `ddphonism.sty'.
