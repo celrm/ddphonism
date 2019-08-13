@@ -38,51 +38,84 @@
 	\begin{multicols}{2}
 		\dmatrix{0,1,2,3,4}
 		
-		\tikz{\ddihedral{4,5,7,1,6,3,8,2,11,0,9,10}}
+		\ddihedral{4,5,7,1,6,3,8,2,11,0,9,10}
 		
-		\ddiagram{4,5,7,1,6,3,8,2,11,0,9,10}{}
+		\ddiagram{4,5,7,1,6,3,8,2,11,0,9,10}
 		
-		\tikz{\darrows{4,5,7,1,6,3,8,2,11,0,9,10}}
+		\darrows{4,5,7,1,6,3,8,2,11,0,9,10}
 		
 		\bigskip
 		\drow{4,3,2,1,0}
 	\end{multicols}
 	
 	\section{Using the \textsf{ddphonism} package}
-	These are the commands provided by \textsf{ddphonism}:
+	These are the commands provided by \textsf{ddphonism}. The main parameter in every command is the row sequence.
 	
 	\newcommand{\I}[1]{\item[\texttt{$\backslash$#1}]\quad}
 	\begin{itemize}
-		\I{dmatrix} produces a twelve-tone matrix of arbitrary length, as shown in \href{https:matrices.netlify.com}{this website}. Its parameter is the row sequence. For example, \verb|\dmatrix{0,2,1,4,3,6,5}| produces the matrix \dmatrix{0,2,1,4,3,6,5}
+		\I{dmatrix} produces a twelve-tone matrix of arbitrary length, as shown in \href{https:matrices.netlify.com}{this website}. For example, \verb|\dmatrix{0,2,1,4,3,6,5}| produces the matrix \dmatrix{0,2,1,4,3,6,5}
 
-		The command automatically reduces the input and output modulus the length of the input series. Thus, the input \verb|\dmatrix{7,9,8,11,10,13,12}| produces the same output as before.
+		The optional parameter \textsf{sep} scales the matrix. The optional parameters \textsf{vsep, hsep} scales the matrix vertically and horizontally.
 		
-		\I{ddiagram} produces a twelve tone clock diagram of arbitrary length, as shown in \href{https:diagramas.netlify.com}{this website}. Its parameters are the row sequence and its name. An additional optional parameter tells which number must be up north. The default value is the first number. For example, \verb|\ddiagram{0,2,1,4,3,6,5}{P}| produces the diagram \ddiagram{0,2,1,4,3,6,5}{P}
-
-		and \verb|\ddiagram[3]{0,1,2,3,4}{P}| produces the diagram \ddiagram[3]{0,2,1,4,3,6,5}{P}
-
-		The command also reduces the input and output modulus the length of the input series.
+		The optional parameter \textsf{lines} draws lines between rows and columns. The optional parameters \textsf{outside lines, inside lines} only draws the outside or inside lines. The optional parameters \textsf{vlines, hlines} only draws the vertical or horizontal lines.
 		
-		\I{ddihedral} produces a dihedral representation of a series of arbitrary length. Its parameters are the original row sequence and, optionally, the transformations it undergoes: \texttt{t,s,c,v} applied in that order. For example,\\ \verb|\tikz{\ddihedral[t=2,v=1]{0,2,1,4,3,6,5}}| produces the diagram\\ \tikz{\ddihedral[t=2,v=1]{0,2,1,4,3,6,5}}
-
-		It needs to be inside a \texttt{tikz} environment, as opposed to the previous ones, which are separate \texttt{tikz} environments on their own. This is because rotation or translation lines are sometimes included in this diagram, and sometimes it needs scalings.
-
-		The command also reduces the input and output modulus the length of the input series.
+		\verb|\dmatrix[lines,sep=0.75]{0,2,1,4,3,6,5}| produces the matrix\\ 
+		\dmatrix[lines,sep=0.75]{0,2,1,4,3,6,5}
+		
+		The optional parameter \textsf{no tikz} deletes the tikz environment and lets the user write it instead.
+		
+		\I{ddiagram} produces a twelve tone clock diagram of arbitrary length, as shown in \href{https:diagramas.netlify.com}{this website}. For example, \verb|\ddiagram{0,2,1,4,3,6,5}| produces the diagram\\ 
+		\ddiagram{0,2,1,4,3,6,5}
+		
+		The optional parameter \textsf{name} lets the user write a name at the center of the diagram.
+		
+		The optional parameter \textsf{up} lets the user choose which number is up north. The default value is the first number in the row.
+		
+		\verb|\ddiagram[name=P, up=5]{0,2,1,4,3,6,5}| produces the diagram\\
+		\ddiagram[name=P, up=5]{0,2,1,4,3,6,5}
+		
+		The optional parameter \textsf{no tikz} deletes the tikz environment and lets the user write it instead. The option \textsf{up} does not work anymore and the up position becomes 0. It is recommended that the user passes the option \textsf{ddiagram} to the environment:
+		\begin{verbatim}
+			\begin{tikzpicture}[ddiagram]
+			\ddiagram[no tikz]{0,2,1,4,3,6,5}
+			\end{tikzpicture}
+		\end{verbatim} produces the same diagram as  \verb|\ddiagram{0,2,1,4,3,6,5}|.
+		
+		\I{ddihedral} produces a dihedral representation of a series of arbitrary length. For example, \verb|\ddihedral{0,2,1,4,3,6,5}| produces the diagram\\
+		\ddihedral{0,2,1,4,3,6,5}
+		
+		The optional parameters \textsf{t, s, c, v} let the user apply transformations to the diagram: \textit{transposition}, \textit{inversion}, \textit{cyclic shift} and \textit{retrograde}, in that order.
+		
+		\verb|\ddihedral[s=1, c=4]{0,2,1,4,3,6,5}| produces the diagram\\
+		\ddihedral[s=1, c=4]{0,2,1,4,3,6,5}
+		
+		The optional parameter \textsf{no tikz} deletes the tikz environment and lets the user write it instead. It is recommended that the user passes the option \textsf{ddihedral} to the environment:
+		\begin{verbatim}
+		\begin{tikzpicture}[ddihedral]
+		\ddihedral[no tikz]{0,2,1,4,3,6,5}
+		\end{tikzpicture}
+		\end{verbatim} produces the same diagram as  \verb|\ddihedral{0,2,1,4,3,6,5}|.		
 		
 		\I{darrows} produces the arrows from the \verb|\ddihedral| diagram. For example,
- 		\verb|\tikz{\darrows{0,2,1,4,3,6,5}}| produces the arrows\\
- 		\tikz{\darrows{0,2,1,4,3,6,5}}
+ 		\verb|\darrows{0,2,1,4,3,6,5}| produces the arrows\\
+ 		\darrows{0,2,1,4,3,6,5}
+ 		
+ 		The optional parameter \textsf{no tikz} deletes the tikz environment and lets the user write it instead.
 		
 		\I{drow} produces a twelve-tone row sequence as a permutation in its matrix form. For example, \verb|\drow{0,2,1,4,3,6,5}| produces the row
 		
 		\drow{0,2,1,4,3,6,5}
 		
+		The optional parameter \textsf{sep} lets the user choose the column separation.
+		
+		\verb|\drow[sep=10pt]{0,2,1,4,3,6,5}| produces the row
+		
+		\drow[sep=10pt]{0,2,1,4,3,6,5}
+		
 	\end{itemize}
 	
 	\section{The package code}	
 	\lstset{
-%		frame=lines,
-		%
 		language=[Latex]Tex,
 		%
 		basicstyle=\footnotesize\sffamily,

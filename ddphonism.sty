@@ -10,7 +10,7 @@
 \ProvidesPackage{ddphonism}
 [2019/08/10 v0.1 LaTeX package for twelve-tone matrices, clock diagrams et al.]
 
-\RequirePackage{ifthen}
+\RequirePackage{etoolbox}
 \RequirePackage{xparse}
 \RequirePackage{tikz}
 \RequirePackage{xstring}
@@ -62,6 +62,9 @@
 \newif\ifdmatrixLines
 \newif\ifdmatrixOutside
 \newif\ifdmatrixInside
+\newif\ifdmatrixV
+\newif\ifdmatrixH
+\newif\ifdmatrixTikz
 \pgfkeys{
 	/dmatrix/.is family
 	, /dmatrix
@@ -69,52 +72,85 @@
 		{ lines = false
 		, outside lines = false
 		, inside lines = false
-		, scale = 1
+		, sep = 1
+		, vsep = 1
+		, hsep = 1
+		, no tikz = false
 		}
+	, no tikz/.is if=dmatrixTikz
 	, lines/.is if=dmatrixLines
 	, outside lines/.is if=dmatrixOutside
 	, inside lines/.is if=dmatrixInside
-	, scale/.estore in=\dmatrixScale
+	, vlines/.is if=dmatrixV
+	, hlines/.is if=dmatrixH
+	, sep/.estore in=\dmatrixSep
+	, vsep/.estore in=\dmatrixVsep
+	, hsep/.estore in=\dmatrixHsep
 }
 
-\newcommand{\DmatrixOutside}{%	
-	\draw (0.05,0) -- (\theDsize+0.05,0);%
-	\draw (0.05,-\theDsize*0.5) -- (\theDsize+0.05,-\theDsize*0.5);%
-	\draw (0.05,0) -- (0.05,-\theDsize*0.5);%
-	\draw (\theDsize+0.05,0) -- (\theDsize+0.05,-\theDsize*0.5);%
+\newcommand{\DLOH}{%
+	\draw (0.05*\dmatrixSep*\dmatrixHsep,0) --%
+	(\theDsize*\dmatrixSep*\dmatrixHsep+0.05*\dmatrixSep*\dmatrixHsep,0);%
+	\draw (0.05*\dmatrixSep*\dmatrixHsep,-\theDsize*0.5*\dmatrixSep*\dmatrixVsep) -- %
+	(\theDsize*\dmatrixSep*\dmatrixHsep+0.05*\dmatrixSep*\dmatrixHsep,-\theDsize*0.5*\dmatrixSep*\dmatrixVsep);%
 }
 
-\newcommand{\DmatrixInside}{%
-	\foreach \xD in {1,...,\Evaluation{\theDsize-1}} {%
-		\draw (\xD+0.05,0) -- (\xD+0.05,-\theDsize*0.5);%
-		\draw (0.05,-\xD*0.5) -- (\theDsize+0.05,-\xD*0.5);%
-	}%
+\newcommand{\DLOV}{%
+	\draw (0.05*\dmatrixSep*\dmatrixHsep,0) -- %
+	(0.05*\dmatrixSep*\dmatrixHsep,-\theDsize*0.5*\dmatrixSep*\dmatrixVsep);%
+	\draw (\theDsize*\dmatrixSep*\dmatrixHsep+0.05*\dmatrixSep*\dmatrixHsep,0) -- %
+	(\theDsize*\dmatrixSep*\dmatrixHsep+0.05*\dmatrixSep*\dmatrixHsep,-\theDsize*0.5*\dmatrixSep*\dmatrixVsep);
+}
+
+\newcommand{\DLIH}{%
+	\draw (0.05*\dmatrixSep*\dmatrixHsep,-\xD*0.5*\dmatrixSep*\dmatrixVsep) -- %
+	(\theDsize*\dmatrixSep*\dmatrixHsep+0.05*\dmatrixSep*\dmatrixHsep,-\xD*0.5*\dmatrixSep*\dmatrixVsep);%
+}
+
+\newcommand{\DLIV}{%
+	\draw (\xD*\dmatrixSep*\dmatrixHsep+0.05*\dmatrixSep*\dmatrixHsep,0) -- %
+	(\xD*\dmatrixSep*\dmatrixHsep+0.05*\dmatrixSep*\dmatrixHsep,-\theDsize*0.5*\dmatrixSep*\dmatrixVsep);%
 }
 
 \newcommand{\dmatrix}[2][]{%
-	\pgfkeys{/dmatrix, default, #1}%
 	\DsizeMake{#2}%
 	\DheadMake{#2}%
-	\begin{tikzpicture}[scale=\dmatrixScale]%
-		\foreach [count=\nj] \j in {#2} {%
-			\foreach [count=\ni] \i in {#2} {%
-				\draw node at (\ni-0.5,-\nj/2+0.25) {%
-					\Modulo{\Evaluation{\i-\j+\theDfirst}}%
-				};%
-			}%
+	%
+	\pgfkeys{/dmatrix, default, #1}%
+	%
+	\ifdmatrixTikz\else%
+	\begin{tikzpicture}%
+	\fi%
+	\foreach [count=\nj] \j in {#2} {%
+		\foreach [count=\ni] \i in {#2} {%
+			\draw node at 
+			( \ni*\dmatrixSep*\dmatrixHsep-0.5*\dmatrixSep*\dmatrixHsep
+			, -\nj*\dmatrixSep*\dmatrixVsep/2+0.25*\dmatrixSep*\dmatrixVsep) {%
+				\Modulo{\Evaluation{\i-\j+\theDfirst}}%
+			};%
 		}%
-		\ifdmatrixLines%
-			\DmatrixInside%
-			\DmatrixOutside%
-		\else%
-			\ifdmatrixOutside%
-				\DmatrixOutside%
-			\fi%
-			\ifdmatrixInside%
-				\DmatrixInside%
-			\fi%
-		\fi%
-	\end{tikzpicture}%
+	}%
+	\foreach \xD in {1,...,\Evaluation{\theDsize-1}} {%
+		\ifdmatrixLines
+		\DLOH\DLOV\DLIH\DLIV
+		\fi
+		\ifdmatrixOutside
+		\DLOH\DLOV
+		\fi
+		\ifdmatrixInside
+		\DLIH\DLIV
+		\fi
+		\ifdmatrixH
+		\DLOH\DLIH
+		\fi
+		\ifdmatrixV
+		\DLOV\DLIV
+		\fi
+	}%
+%
+\ifdmatrixTikz\else%
+\end{tikzpicture}%
+\fi%
 }
 
 
@@ -128,39 +164,60 @@
 			{\arrow[scale=1.25,>=triangle 45]{>}}},
 	postaction={decorate}]
 
-\newcounter{Dprev}
-\newcounter{Dvar}
+\tikzstyle{ddiagram}=[minimum height=0pt,inner sep=0pt,outer sep=0pt,scale=0.65]
 
-\newcommand{\ddiagram}[3][-1]{%
+\newif\ifddiagramTikz
+\pgfkeys{
+	/ddiagram/.is family
+	, /ddiagram
+	, default/.style = 
+		{ name =\empty%
+		, up =\empty%
+		, no tikz = false
+		}
+	, no tikz/.is if=ddiagramTikz
+	, name/.estore in=\ddiagramName
+	, up/.estore in=\ddiagramUp
+}
+
+\newcounter{Dprev}
+\newcommand{\Dvar}{}
+\newcommand{\ddiagram}[2][]{%
 	\DsizeMake{#2}%
 	\DheadMake{#2}%
 	%
-	\ifnum #1=-1%
-	\setcounter{Dvar}{\theDfirst}%
-	\else\setcounter{Dvar}{#1}%
-	\fi%
+	\pgfkeys{/ddiagram, default, #1}%
 	%
-	\begin{tikzpicture}[rotate=360*\theDvar/\theDsize,%
-	minimum height=0pt,inner sep=0pt,outer sep=0pt,scale=0.65]%
+	\ifdefequal{\ddiagramUp}{\empty}%
+	{\renewcommand{\Dvar}{\theDfirst}}% if empty
+	{\renewcommand{\Dvar}{\ddiagramUp}}% if not empty
+	%
+	\ifddiagramTikz\else%
+	\begin{tikzpicture}[ddiagram,rotate=360*\Dvar/\theDsize]%
+	\fi%
 	\foreach \x in {0,...,\Evaluation{\theDsize-1}} {%
 		\node at (90-360*\x/\theDsize:2) {\x};%
 		\node (\x) at (90-360*\x/\theDsize:1.6) {};%
 	};%
 	%
 	\setcounter{Dprev}{-1}%
-	\foreach \x in {#2}{
-		\ifnum \theDprev=\theDfirst
-		\draw [style=ddiagramArrow] (\theDprev) -- (\x);
-		\else \ifnum \theDprev=-1
-		\else
-		\draw (\theDprev) -- (\x);
-		\fi\fi
-		\setcounter{Dprev}{\x}
-	};
-	\draw (\theDprev) -- (\theDfirst);
-	
-	\node at (0,0) [circle,fill=white] {#3};%
+	\foreach \x in {#2}{%
+		\ifnum \theDprev=\theDfirst%
+		\draw [style=ddiagramArrow] (\theDprev) -- (\x);%
+		\else \ifnum \theDprev=-1%
+		\else%
+		\draw (\theDprev) -- (\x);%
+		\fi\fi%
+		\setcounter{Dprev}{\x}%
+	};%
+	\draw (\theDprev) -- (\theDfirst);%
+	%
+	\ifdefequal{\ddiagramName}{\empty}%
+	{}% if empty
+	{\node at (0,0) [circle,fill=white] {\ddiagramName};}% if not empty
+	\ifddiagramTikz\else%
 	\end{tikzpicture}%
+	\fi%
 }
 
 
@@ -171,32 +228,52 @@
 		{markings,mark=at position 1 with {\arrow[scale=1.5,>=angle 60]{>}}},
 	postaction={decorate}]
 
+\tikzstyle{ddihedral}=[inner sep=0,minimum height=18pt]
+
+\newif\ifddihedralTikz
 \pgfkeys{
 	/ddihedral/.is family, /ddihedral,
-	default/.style = {t = 0, c = 0, s = 0, v = 0},
+	default/.style = {t = 0, c = 0, s = 0, v = 0, no tikz=false},
+	no tikz/.is if=ddihedralTikz,
 	t/.estore in = \ddihedralT,
 	c/.estore in = \ddihedralC,
 	s/.estore in = \ddihedralS,
 	v/.estore in = \ddihedralV,
 }
 
-\newcommand{\darrows}[1]{%
-	\DsizeMake{#1}%
+\newif\ifdarrowsTikz
+\pgfkeys{
+	/darrows/.is family, /darrows,
+	default/.style = {no tikz=false},
+	no tikz/.is if=darrowsTikz,
+}
+\newcommand{\darrows}[2][]{%
+	\DsizeMake{#2}%
+	%
+	\pgfkeys{/darrows, default, #1}%
+	%
+	\ifdarrowsTikz\else%
+	\begin{tikzpicture}%
+	\fi%
 	\draw foreach \x in {0,...,\Evaluation{\theDsize-1}} {%
 		(90-360*\x/\theDsize:2.5) node[circle] (\x) {}%
 	};%
-	\foreach \x [count=\y] in {#1} {%
+	\foreach \x [count=\y] in {#2} {%
 		\draw [style=ddihedralArrow] (90-360*\Evaluation{\y-1}/\theDsize:1.25) -- (\x);%
 	};%
+	\ifdarrowsTikz\else%
+	\end{tikzpicture}%
+	\fi%
 }
 
 \newcommand\ddihedral[2][]{%
-	\pgfkeys{/ddihedral, default, #1}%
-	%
-	\tikzset{inner sep=0,minimum height=18pt}%
-	%
 	\DsizeMake{#2}%
 	%
+	\pgfkeys{/ddihedral, default, #1}%
+	%
+	\ifddihedralTikz\else%
+	\begin{tikzpicture}[ddihedral]%
+	\fi%
 	\draw foreach \x in {0,...,\Evaluation{\theDsize-1}} {%
 		(\Evaluation{(90+\ddihedralT*360/\theDsize)+(2*\ddihedralS-1)*\x*360/\theDsize}:2.5)%
 		node[very thin,circle,draw] (\x) {\x}%
@@ -207,61 +284,77 @@
 		node[very thin,circle,draw] {\x}%
 	};%
 	%
-	\darrows{#2}%
+	\darrows[no tikz]{#2}%
 	%
-	\node at (0,0) [very thin,draw,circle, fill=white] {\ %
+	\node at (0,0) [very thin,draw,circle, fill=white] {%
 		\ifnum\ddihedralV=0%
 		\ifnum\ddihedralC=0%
 		\ifnum\ddihedralS=0%
 		\ifnum\ddihedralT=0%
 		P%
 		\fi\fi\fi%
-		\else V \fi%
+		\else V\fi%
 		\ifnum\ddihedralC=0%
-		\else C$^{\ddihedralC}$ \fi%
+		\else C$^{\ddihedralC}$\fi%
 		\ifnum\ddihedralS=0%
-		\else S \fi%
+		\else S\fi%
 		\ifnum\ddihedralT=0%
-		\else T$^{\ddihedralT}$ \fi%
-	\ };%
+		\else T$^{\ddihedralT}$\fi%
+	};%
+	\ifddihedralTikz\else%
+	\end{tikzpicture}%
+	\fi%
 }
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Rows
 
+\pgfkeys{
+	/drow/.is family, /drow,
+	default/.style = {sep=\arraycolsep},
+	sep/.estore in = \drowSep,
+}
+
 \long\def\addto#1#2{\expandafter\def\expandafter#1\expandafter{#1#2}}
 \newcounter{myDDcntr}
+\newlength{\Dvarr}
 	
-\newcommand{\drow}[1]{%
-	\DsizeMake{#1}%
+\newcommand{\drow}[2][]{%
+	\DsizeMake{#2}%
+	%
+	\pgfkeys{/drow, default, #1}%
+	\setlength{\Dvarr}{\arraycolsep}
+	\setlength{\arraycolsep}{\drowSep}
+	%
 	\ifnum\theDsize=0%
-		\ensuremath{\left(\right)}%
+	\ensuremath{\left(\right)}%
 	\else\ifnum\theDsize=1%
-		\ensuremath{%
-			\left(\begin{array}{*{\theDsize}c}%
-				0\\%
-				#1\\%
-			\end{array}\right)%
-		}%
+	\ensuremath{%
+		\left(\begin{array}{*{\theDsize}c}%
+			0\\%
+			#2\\%
+		\end{array}\right)%
+	}%
 	\else%
-		\def\TableDDdata{}%
-		\setcounter{myDDcntr}{0}%
-		\loop%
-			\addto\TableDDdata{\themyDDcntr\stepcounter{myDDcntr} &}%
-			\stepcounter{myDDcntr}%
-			\ifnum\themyDDcntr<\Evaluation{\theDsize-1}%
-			\repeat%
-		\addto\TableDDdata{\themyDDcntr \\}%
-		\setcounter{myDDcntr}{0}%
-		%
-		\ensuremath{%
-			\left(\begin{array}{*{\theDsize}c}%
-				\TableDDdata%
-				\StrSubstitute{#1}{,}{&}\\%
-			\end{array}\right)%
-		}%
-	\fi\fi
+	\def\TableDDdata{}%
+	\setcounter{myDDcntr}{0}%
+	\loop%
+	\addto\TableDDdata{\themyDDcntr\stepcounter{myDDcntr} &}%
+	\stepcounter{myDDcntr}%
+	\ifnum\themyDDcntr<\Evaluation{\theDsize-1}%
+	\repeat%
+	\addto\TableDDdata{\themyDDcntr \\}%
+	\setcounter{myDDcntr}{0}%
+	%
+	\ensuremath{%
+		\left(\begin{array}{*{\theDsize}c}%
+			\TableDDdata%
+			\StrSubstitute{#2}{,}{&}\\%
+		\end{array}\right)%
+	}%
+	\fi\fi%
+	\setlength{\arraycolsep}{\Dvarr}
 }
 
 \endinput
