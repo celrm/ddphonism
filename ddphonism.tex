@@ -7,7 +7,7 @@
 \usepackage{ddphonism}
 
 \title{The \textsf{ddphonism} package\footnote{This
-		document corresponds to \textsf{ddphonism} v0.1, dated 2019/08/10.}}
+		document corresponds to \textsf{ddphonism} v0.2, dated 2019/08/10.}}
 \author{Celia Rubio Madrigal\footnote{Email: \href{mailto:celrubio@ucm.es}{\texttt{celrubio@ucm.es}}}}
 \date{August 10, 2019}
 
@@ -17,7 +17,7 @@
 	\maketitle
 	
 	\begin{abstract}
-		This is a music-related package which is focused on notation from the Twelve-Tone System, also called Dodecaphonism. It provides \LaTeX{} algorithms that produce typical T.T.S. notation based off a musical series, or row sequence, of variable length.
+		This is a music-related package focused on notation from the Twelve-Tone System, also called Dodecaphonism. It provides \LaTeX{} algorithms that produce typical dodecaphonic diagrams based off a musical series, or row sequence, of variable length.
 		
 		\begin{center}
 			\textbf{Keywords}
@@ -25,6 +25,8 @@
 	
 		\textit{twelve tone system, dodecaphonism, music, mathematics, matrix, row, series, diagram, clock diagram, notation, algorithm, schoenberg, contemporary music, 20th century}
 	\end{abstract}
+
+%TODO no numbers
 
 	\tableofcontents
 	
@@ -51,62 +53,101 @@
 	\section{Using the \textsf{ddphonism} package}
 	These are the commands provided by \textsf{ddphonism}. The main parameter in every command is the row sequence.
 	
-	\newcommand{\I}[1]{\item[\texttt{$\backslash$#1}]\quad}
+	\newcommand{\I}[1]{\item[\texttt{$\backslash$#1}]\quad}	
+	\newcommand{\Ii}[1]{\item[\textsf{#1}]\quad}
 	\begin{itemize}
 		\I{dmatrix} produces a twelve-tone matrix of arbitrary length, as shown in \href{https:matrices.netlify.com}{this website}. For example, \verb|\dmatrix{0,2,1,4,3,6,5}| produces the matrix \dmatrix{0,2,1,4,3,6,5}
 
-		The optional parameter \textsf{sep} scales the matrix. The optional parameters \textsf{vsep, hsep} scales the matrix vertically and horizontally.
+		\begin{itemize}
+			\Ii{sep} scales the matrix.
+			\Ii {vsep} scales the matrix vertically.
+			\Ii {hsep} scales the matrix horizontally.
+			\Ii{lines} draws lines between rows and columns.
+			\Ii{outside lines} only draws the outside lines.
+			\Ii{inside lines} only draws the inside lines.
+			\Ii{vlines lines} only draws the vertical lines.
+			\Ii{hlines lines} only draws the horizontal lines.
+		\end{itemize}
+		\verb|\dmatrix[lines,sep=0.75]{0,2,1,4,3,6,5}| produces the matrix
 		
-		The optional parameter \textsf{lines} draws lines between rows and columns. The optional parameters \textsf{outside lines, inside lines} only draws the outside or inside lines. The optional parameters \textsf{vlines, hlines} only draws the vertical or horizontal lines.
-		
-		\verb|\dmatrix[lines,sep=0.75]{0,2,1,4,3,6,5}| produces the matrix\\ 
 		\dmatrix[lines,sep=0.75]{0,2,1,4,3,6,5}
 		
-		The optional parameter \textsf{no tikz} deletes the tikz environment and lets the user write it instead.
+		\begin{itemize}
+			\Ii{no tikz} deletes the tikz environment and lets the user write it instead.
+		\end{itemize}
 		
 		\I{ddiagram} produces a twelve tone clock diagram of arbitrary length, as shown in \href{https:diagramas.netlify.com}{this website}. For example, \verb|\ddiagram{0,2,1,4,3,6,5}| produces the diagram\\ 
 		\ddiagram{0,2,1,4,3,6,5}
 		
-		The optional parameter \textsf{name} lets the user write a name at the center of the diagram.
-		
-		The optional parameter \textsf{up} lets the user choose which number is up north. The default value is the first number in the row.
+		\begin{itemize}
+			\Ii{name} lets the user write a name at the center of the diagram.
+			\Ii{up} lets the user choose which number is up north. The default value is the first number in the row.
+		\end{itemize}
 		
 		\verb|\ddiagram[name=P, up=5]{0,2,1,4,3,6,5}| produces the diagram\\
 		\ddiagram[name=P, up=5]{0,2,1,4,3,6,5}
 		
-		The optional parameter \textsf{no tikz} deletes the tikz environment and lets the user write it instead. The option \textsf{up} does not work anymore and the up position becomes 0. It is recommended that the user passes the option \textsf{ddiagram} to the environment:
-		\begin{verbatim}
+		
+		\begin{itemize}
+			\Ii{no numbers} deletes the numbers around the diagram.
+			\Ii{no arrow} deletes the arrow inside the diagram.
+		\end{itemize}
+		
+		\verb|\ddiagram[no numbers, no arrow]{0,2,1,4,3,6,5}| produces the diagram\\
+		\ddiagram[no numbers, no arrow]{0,2,1,4,3,6,5}
+		
+		\begin{itemize}
+			\Ii{xshift} lets the user shift the figure horizontally.
+			\Ii{yshift} lets the user shift the figure vertically.
+			\Ii{no tikz} deletes the tikz environment and lets the user write it instead.
+			The option \textsf{up} does not work anymore and the up position becomes 0.
+			It is recommended that the user passes the option \textsf{ddiagram} to the environment:			
+			\begin{verbatim}
 			\begin{tikzpicture}[ddiagram]
 			\ddiagram[no tikz]{0,2,1,4,3,6,5}
 			\end{tikzpicture}
-		\end{verbatim} produces the same diagram as  \verb|\ddiagram{0,2,1,4,3,6,5}|.
+			\end{verbatim} produces the same diagram as  \verb|\ddiagram{0,2,1,4,3,6,5}|.
+		\end{itemize}
 		
 		\I{ddihedral} produces a dihedral representation of a series of arbitrary length. For example, \verb|\ddihedral{0,2,1,4,3,6,5}| produces the diagram\\
 		\ddihedral{0,2,1,4,3,6,5}
 		
-		The optional parameters \textsf{t, s, c, v} let the user apply transformations to the diagram: \textit{transposition}, \textit{inversion}, \textit{cyclic shift} and \textit{retrograde}, in that order.
+		\begin{itemize}
+			\Ii{t} lets the user apply the transformation \textit{transposition} to the diagram.
+			\Ii{s} lets the user apply the transformation \textit{inversion} to the diagram.
+			\Ii{c} lets the user apply the transformation \textit{cyclic shift} to the diagram.
+			\Ii{v} lets the user apply the transformation \textit{retrograde} to the diagram.
+			
+			The transformations are applied in that exact order.
+		\end{itemize}
 		
-		\verb|\ddihedral[s=1, c=4]{0,2,1,4,3,6,5}| produces the diagram\\
+		 \verb|\ddihedral[s=1, c=4]{0,2,1,4,3,6,5}| produces the diagram\\
 		\ddihedral[s=1, c=4]{0,2,1,4,3,6,5}
 		
-		The optional parameter \textsf{no tikz} deletes the tikz environment and lets the user write it instead. It is recommended that the user passes the option \textsf{ddihedral} to the environment:
-		\begin{verbatim}
-		\begin{tikzpicture}[ddihedral]
-		\ddihedral[no tikz]{0,2,1,4,3,6,5}
-		\end{tikzpicture}
-		\end{verbatim} produces the same diagram as  \verb|\ddihedral{0,2,1,4,3,6,5}|.		
+		\begin{itemize}
+			\Ii{no tikz} deletes the tikz environment and lets the user write it instead. It is recommended that the user passes the option \textsf{ddihedral} to the environment:
+			\begin{verbatim}
+			\begin{tikzpicture}[ddihedral]
+			\ddihedral[no tikz]{0,2,1,4,3,6,5}
+			\end{tikzpicture}
+			\end{verbatim} produces the same diagram as  \verb|\ddihedral{0,2,1,4,3,6,5}|.
+		\end{itemize}
 		
 		\I{darrows} produces the arrows from the \verb|\ddihedral| diagram. For example,
  		\verb|\darrows{0,2,1,4,3,6,5}| produces the arrows\\
  		\darrows{0,2,1,4,3,6,5}
  		
- 		The optional parameter \textsf{no tikz} deletes the tikz environment and lets the user write it instead.
+ 		\begin{itemize}
+ 			\Ii{no tikz} deletes the tikz environment and lets the user write it instead.
+ 		\end{itemize}
 		
 		\I{drow} produces a twelve-tone row sequence as a permutation in its matrix form. For example, \verb|\drow{0,2,1,4,3,6,5}| produces the row
 		
 		\drow{0,2,1,4,3,6,5}
 		
-		The optional parameter \textsf{sep} lets the user choose the column separation.
+		\begin{itemize}
+			\Ii{sep} lets the user choose the column separation.
+		\end{itemize}
 		
 		\verb|\drow[sep=10pt]{0,2,1,4,3,6,5}| produces the row
 		

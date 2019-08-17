@@ -1,0 +1,31 @@
+\documentclass{article}
+
+\input{ddphonism.sty}
+
+\begin{document}
+
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	% Chord diagram
+	
+	\newcommand{\dchords}[2][]{
+		\DsizeMake{#2}
+		\begin{tikzpicture}[ddihedral]
+		\foreach[count=\nx] \x in {#2} {
+			\node (\x) at (90+360/\theDsize-\nx*360/\theDsize:2) {};
+		}
+		\foreach \x in {#2} {
+			\ifnum\Evaluation{\x-\theDsize/2}<0
+			\ifodd\theDsize
+			\draw (\x) -- (\Evaluation{\x+\theDsize/2-1});
+			\else
+			\draw (\x) -- (\Evaluation{\x+\theDsize/2});
+			\fi\fi
+		}
+		\foreach[count=\nx] \x in {#2} {
+			\node[very thin,circle,draw,fill=white] at (90+360/\theDsize-\nx*360/\theDsize:2) {\x};
+		}
+		\end{tikzpicture}
+	}
+
+\end{document}

@@ -8,7 +8,7 @@
  
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{ddphonism}
-[2019/08/10 v0.1 LaTeX package for twelve-tone matrices, clock diagrams et al.]
+[2019/08/10 v0.2 Dodecaphonic diagrams: twelve-tone matrices, clock diagrams, etc.]
 
 \RequirePackage{etoolbox}
 \RequirePackage{xparse}
@@ -48,7 +48,7 @@
 % Only when DsizeMake is already done.
 \newcounter{Dmod}
 \newcommand{\Modulo}[1]{%
-	\setcounter{Dmod}{#1}
+	\setcounter{Dmod}{#1}%
 	\loop%
 	\ifnum\theDmod>\Evaluation{\theDsize-1}%		
 		\setcounter{Dmod}{\Evaluation{\theDmod-\theDsize}}%
@@ -167,6 +167,8 @@
 \tikzstyle{ddiagram}=[minimum height=0pt,inner sep=0pt,outer sep=0pt,scale=0.65]
 
 \newif\ifddiagramTikz
+\newif\ifddiagramNum
+\newif\ifddiagramArr
 \pgfkeys{
 	/ddiagram/.is family
 	, /ddiagram
@@ -174,10 +176,18 @@
 		{ name =\empty%
 		, up =\empty%
 		, no tikz = false
+		, no numbers = false
+		, no arrow = false
+		, xshift = 0
+		, yshift = 0
 		}
 	, no tikz/.is if=ddiagramTikz
+	, no numbers/.is if=ddiagramNum
+	, no arrow/.is if=ddiagramArr
 	, name/.estore in=\ddiagramName
 	, up/.estore in=\ddiagramUp
+	, xshift/.estore in=\ddiagramX
+	, yshift/.estore in=\ddiagramY
 }
 
 \newcounter{Dprev}
@@ -196,25 +206,30 @@
 	\begin{tikzpicture}[ddiagram,rotate=360*\Dvar/\theDsize]%
 	\fi%
 	\foreach \x in {0,...,\Evaluation{\theDsize-1}} {%
-		\node at (90-360*\x/\theDsize:2) {\x};%
-		\node (\x) at (90-360*\x/\theDsize:1.6) {};%
+		\ifddiagramNum\else
+		\node [xshift=\ddiagramX,yshift=\ddiagramY] at (90-360*\x/\theDsize:2) {\x};%
+		\fi
+		\node [xshift=\ddiagramX,yshift=\ddiagramY] (\x) at (90-360*\x/\theDsize:1.6) {};%
 	};%
 	%
 	\setcounter{Dprev}{-1}%
 	\foreach \x in {#2}{%
 		\ifnum \theDprev=\theDfirst%
-		\draw [style=ddiagramArrow] (\theDprev) -- (\x);%
-		\else \ifnum \theDprev=-1%
-		\else%
-		\draw (\theDprev) -- (\x);%
+			\ifddiagramArr
+			\draw [xshift=\ddiagramX,yshift=\ddiagramY] (\theDprev) -- (\x);%
+			\else
+			\draw [style=ddiagramArrow,xshift=\ddiagramX,yshift=\ddiagramY] (\theDprev) -- (\x);%
+			\fi
+		\else \ifnum \theDprev=-1 \else%
+		\draw [xshift=\ddiagramX,yshift=\ddiagramY] (\theDprev) -- (\x);%
 		\fi\fi%
 		\setcounter{Dprev}{\x}%
 	};%
-	\draw (\theDprev) -- (\theDfirst);%
+	\draw [xshift=\ddiagramX,yshift=\ddiagramY] (\theDprev) -- (\theDfirst);%
 	%
 	\ifdefequal{\ddiagramName}{\empty}%
 	{}% if empty
-	{\node at (0,0) [circle,fill=white] {\ddiagramName};}% if not empty
+	{\node [xshift=\ddiagramX,yshift=\ddiagramY] at (0,0) [circle,fill=white] {\ddiagramName};}% if not empty
 	\ifddiagramTikz\else%
 	\end{tikzpicture}%
 	\fi%
