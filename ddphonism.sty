@@ -159,16 +159,11 @@
 
 \usetikzlibrary{shapes,arrows,decorations.markings,shapes.misc}
 
-\tikzstyle ddiagramArrow=[decoration=
-		{markings,mark=at position 0.25 with
-			{\arrow[scale=1.25,>=triangle 45]{>}}},
-	postaction={decorate}]
-
 \tikzstyle{ddiagram}=[minimum height=0pt,inner sep=0pt,outer sep=0pt,scale=0.65]
 
 \newif\ifddiagramTikz
-\newif\ifddiagramNum
-\newif\ifddiagramArr
+\newif\ifddiagramNoNum
+\newif\ifddiagramNoArr
 \pgfkeys{
 	/ddiagram/.is family
 	, /ddiagram
@@ -180,14 +175,16 @@
 		, no arrow = false
 		, xshift = 0
 		, yshift = 0
+		, arrow shift = 2.5
 		}
 	, no tikz/.is if=ddiagramTikz
-	, no numbers/.is if=ddiagramNum
-	, no arrow/.is if=ddiagramArr
+	, no numbers/.is if=ddiagramNoNum
+	, no arrow/.is if=ddiagramNoArr
 	, name/.estore in=\ddiagramName
 	, up/.estore in=\ddiagramUp
 	, xshift/.estore in=\ddiagramX
 	, yshift/.estore in=\ddiagramY
+	, arrow shift/.estore in=\ddiagramArrS
 }
 
 \newcounter{Dprev}
@@ -206,7 +203,7 @@
 	\begin{tikzpicture}[ddiagram,rotate=360*\Dvar/\theDsize]%
 	\fi%
 	\foreach \x in {0,...,\Evaluation{\theDsize-1}} {%
-		\ifddiagramNum\else
+		\ifddiagramNoNum\else
 		\node [xshift=\ddiagramX,yshift=\ddiagramY] at (90-360*\x/\theDsize:2) {\x};%
 		\fi
 		\node [xshift=\ddiagramX,yshift=\ddiagramY] (\x) at (90-360*\x/\theDsize:1.6) {};%
@@ -215,10 +212,15 @@
 	\setcounter{Dprev}{-1}%
 	\foreach \x in {#2}{%
 		\ifnum \theDprev=\theDfirst%
-			\ifddiagramArr
+			\ifddiagramNoArr
 			\draw [xshift=\ddiagramX,yshift=\ddiagramY] (\theDprev) -- (\x);%
 			\else
-			\draw [style=ddiagramArrow,xshift=\ddiagramX,yshift=\ddiagramY] (\theDprev) -- (\x);%
+			\draw [xshift=\ddiagramX,yshift=\ddiagramY,
+				decoration=
+				{markings,mark=at position 0.099*\ddiagramArrS with
+					{\arrow[scale=1.25,>=triangle 45]{>}}},
+				postaction={decorate}
+			] (\theDprev) -- (\x);%
 			\fi
 		\else \ifnum \theDprev=-1 \else%
 		\draw [xshift=\ddiagramX,yshift=\ddiagramY] (\theDprev) -- (\x);%
