@@ -7,9 +7,9 @@
 \usepackage{ddphonism}
 
 \title{The \textsf{ddphonism} package\footnote{This
-		document corresponds to \textsf{ddphonism} v0.2, dated 2019/08/10.}}
+		document corresponds to \textsf{ddphonism} v0.2, dated 2019/09/01.}}
 \author{Celia Rubio Madrigal\footnote{Email: \href{mailto:celirubio.m@gmail.com}{\texttt{celirubio.m@gmail.com}}}}
-\date{August 10, 2019}
+\date{September 1, 2019}
 
 
 \begin{document}
@@ -23,10 +23,8 @@
 			\textbf{Keywords}
 		\end{center}
 	
-		\textit{twelve tone system, dodecaphonism, music, mathematics, matrix, row, series, diagram, clock diagram, notation, algorithm, schoenberg, contemporary music, 20th century}
+		\textit{twelve tone system, dodecaphonism, music, mathematics, matrix, row, series, permutation, diagram, clock diagram, notation, algorithm, schoenberg, contemporary music, 20th century}
 	\end{abstract}
-
-%TODO no numbers
 
 	\tableofcontents
 	
@@ -35,14 +33,14 @@
 	
 	It is said that a twelve-tone matrix is the only thing a twelve-tone composer should need, because it provides the whole serial spectrum with which they may work. I wanted \LaTeX{} users to be able to generate them automatically.
 	
-	But I also think that a twelve-tone matrix is not enough, that there exist several other notations with which they may understand their series and their potential. These are the diagrams that can be obtained with this package.
+	But I also think that a twelve-tone matrix is not enough, that there exist several other notations with which they may understand their series and their potential. These are the diagrams that can be obtained with this package:
 	
 	\begin{multicols}{2}
 		\dmatrix{4,3,2,1,0}
 		
 		\ddihedral{4,5,7,1,6,3,8,2,11,0,9,10}
 		
-		\ddiagram{4,5,7,1,6,3,8,2,11,0,9,10}
+		\ddiagram[arrow shift = 4]{4,5,7,1,6,3,8,2,11,0,9,10}
 		
 		\darrows{4,5,7,1,6,3,8,2,11,0,9,10}
 		
@@ -80,9 +78,9 @@
 		\ddiagram{0,2,1,4,3,6,5}
 		
 		\begin{itemize}
-			\Ii{name} lets the user write a name at the center of the diagram.
+			\Ii{name} writes a name at the center of the diagram.
 			\Ii{up} lets the user choose which number is up north. The default value is the first number in the row.
-			\Ii{arrow shift} lets the user where the arrow should fall on the line. The values range from 0 to 10. The default is 2.5.
+			\Ii{arrow shift} lets the user choose where the arrow should fall on the line. The values range from 0 to 10. The default value is 2.5.
 		\end{itemize}
 		
 		\verb|\ddiagram[name=P, up=5, arrow shift=5]{0,2,1,4,3,6,5}| produces the diagram\\
@@ -98,11 +96,11 @@
 		\ddiagram[no numbers, no arrow]{0,2,1,4,3,6,5}
 		
 		\begin{itemize}
-			\Ii{xshift} lets the user shift the figure horizontally.
-			\Ii{yshift} lets the user shift the figure vertically.
+			\Ii{xshift} shifts the figure horizontally.
+			\Ii{yshift} shifts the figure vertically.
 			\Ii{no tikz} deletes the tikz environment and lets the user write it instead.
 			The option \textsf{up} does not work anymore and the up position becomes 0.
-			It is recommended that the user passes the option \textsf{ddiagram} to the environment:			
+			It is recommended that the user passes the option \textsf{ddiagram} to the environment:
 			\begin{verbatim}
 			\begin{tikzpicture}[ddiagram]
 			\ddiagram[no tikz]{0,2,1,4,3,6,5}
@@ -114,10 +112,10 @@
 		\ddihedral{0,2,1,4,3,6,5}
 		
 		\begin{itemize}
-			\Ii{t} lets the user apply the transformation \textit{transposition} to the diagram.
-			\Ii{s} lets the user apply the transformation \textit{inversion} to the diagram.
-			\Ii{c} lets the user apply the transformation \textit{cyclic shift} to the diagram.
-			\Ii{v} lets the user apply the transformation \textit{retrograde} to the diagram.
+			\Ii{t} applies the transformation \textit{transposition} to the diagram.
+			\Ii{s} applies the transformation \textit{inversion} to the diagram.
+			\Ii{c} applies the transformation \textit{cyclic shift} to the diagram.
+			\Ii{v} applies the transformation \textit{retrograde} to the diagram.
 			
 			The transformations are applied in that exact order.
 		\end{itemize}
@@ -125,6 +123,17 @@
 		 \verb|\ddihedral[s=1, c=4]{0,2,1,4,3,6,5}| produces the diagram\\
 		\ddihedral[s=1, c=4]{0,2,1,4,3,6,5}
 		
+		\begin{itemize}
+			\Ii{no italics} removes the italics from the diagram name.
+			\Ii{new t} renames the transformation \textit{transposition}.
+			\Ii{new s} renames the transformation \textit{inversion}.
+			\Ii{new c} renames the transformation \textit{cyclic shift}.
+			\Ii{new v} renames the transformation \textit{retrograde}.
+		\end{itemize}
+	
+	\verb|\ddihedral[no italics, new v=R, v=1]{0,2,1,4,3,6,5}| produces the diagram\\
+	\ddihedral[no italics, new v=R, v=1]{0,2,1,4,3,6,5}
+	
 		\begin{itemize}
 			\Ii{no tikz} deletes the tikz environment and lets the user write it instead. It is recommended that the user passes the option \textsf{ddihedral} to the environment:
 			\begin{verbatim}
