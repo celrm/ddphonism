@@ -5,13 +5,16 @@ Celia Rubio Madrigal
 __________________
 Overview
 
-This is a music-related package which is focused on notation from the Twelve-Tone System, also called Dodecaphonism. It provides LaTeX algorithms that produce typical T.T.S. notation based off a musical series, or row sequence, of variable length.
+This is a music-related package focused on notation from the Twelve-Tone System, also called Dodecaphonism. It provides \LaTeX{} algorithms that produce typical dodecaphonic diagrams based off a musical series, or row sequence, of variable length.
 
 __________________
 Change history
 
 Version 0.1 (2019/08/10)
 - Initial public release
+
+Version 0.2(2019/09/01)
+- Added several new features and options
 
 __________________
 License
