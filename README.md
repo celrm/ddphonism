@@ -2,6 +2,8 @@ The ddphonism package
 Celia Rubio Madrigal
 2019/08/10
 
+![ddphonism.png](ddphonism.png)
+
 __________________
 Overview
 
