@@ -6,153 +6,98 @@
 %% of the LaTeX Project Public License Distributed from CTAN archives
 %% in directory macros/latex/base/lppl.txt.
 
-\NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{ddphonism}
-[2019/08/10 v0.2 Dodecaphonic diagrams: twelve-tone matrices, clock diagrams, etc.]
+[2025/05/13 v0.3 Dodecaphonic diagrams: twelve-tone matrices, clock diagrams, etc.]
 
-\RequirePackage{etoolbox}
-\RequirePackage{xparse}
 \RequirePackage{tikz}
-\RequirePackage{xstring}
-\RequirePackage{pgfkeys}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Utilities
+
+\newcounter{D@size}
+\newcommand{\D@sizeMake}[1]{%
+	\setcounter{D@size}{0}%
+	\foreach \n in {#1} {\stepcounter{D@size}}%
+}
+
+\newcounter{D@head}
+\newcommand{\D@headMake}[1]{%
+	\setcounter{D@head}{-1}%
+	\foreach \n in {#1}%
+	{\ifnum\theD@head=-1\setcounter{D@head}{\n}\fi}%
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Matrices
 
 \usetikzlibrary{matrix}
 
-\ExplSyntaxOn
-\DeclareExpandableDocumentCommand{\Evaluation}{m}{\int_eval:n {#1}}
-\ExplSyntaxOff
-
-\newcounter{Dsize}
-\newcommand{\DsizeMake}[1]{%
-	\setcounter{Dsize}{0}%
-	\foreach \n in {#1}{%
-		\stepcounter{Dsize}%
-	}%
-}
-
-% Only with numbers.
-\newcounter{Dfirst}
-\newcommand{\DheadMake}[1]{%
-	\setcounter{Dfirst}{-1}%
-	\foreach \n in {#1}{%
-		\ifnum\theDfirst=-1%
-		\setcounter{Dfirst}{\n}%
-		\fi%
-	}%
-}
-
-% Only when DsizeMake is already done.
-\newcounter{Dmod}
-\newcommand{\Modulo}[1]{%
-	\setcounter{Dmod}{#1}%
-	\loop%
-	\ifnum\theDmod>\Evaluation{\theDsize-1}%		
-	\setcounter{Dmod}{\Evaluation{\theDmod-\theDsize}}%
-	\repeat%
-	\ifnum\theDmod<0%
-	\setcounter{Dmod}{\Evaluation{\theDmod+\theDsize}}%
-	\repeat%
-	\theDmod%
-}
-
-\newif\ifdmatrixLines
-\newif\ifdmatrixOutside
-\newif\ifdmatrixInside
-\newif\ifdmatrixV
-\newif\ifdmatrixH
-\newif\ifdmatrixTikz
+\newif\ifD@matrixLines
+\newif\ifD@matrixO
+\newif\ifD@matrixI
+\newif\ifD@matrixV
+\newif\ifD@matrixH
+\newif\ifD@matrixTikz
 \pgfkeys{
 	/dmatrix/.is family
 	, /dmatrix
 	, default/.style = 
-	{ lines = false
-		, outside lines = false
-		, inside lines = false
-		, sep = 1
-		, vsep = 1
-		, hsep = 1
-		, no tikz = false
-	}
-	, no tikz/.is if=dmatrixTikz
-	, lines/.is if=dmatrixLines
-	, outside lines/.is if=dmatrixOutside
-	, inside lines/.is if=dmatrixInside
-	, vlines/.is if=dmatrixV
-	, hlines/.is if=dmatrixH
-	, sep/.estore in=\dmatrixSep
-	, vsep/.estore in=\dmatrixVsep
-	, hsep/.estore in=\dmatrixHsep
+	{ lines = false, outside lines = false, inside lines = false
+	, sep = 1, vsep = 1, hsep = 1, no tikz = false	}
+	, lines/.is if=D@matrixLines
+	, outside lines/.is if=D@matrixO
+	, inside lines/.is if=D@matrixI
+	, vlines/.is if=D@matrixV
+	, hlines/.is if=D@matrixH
+	, sep/.estore in=\D@matrixSep
+	, vsep/.estore in=\D@matrixVsep
+	, hsep/.estore in=\D@matrixHsep
+	, no tikz/.is if=D@matrixTikz
 }
 
-\newcommand{\DLOH}{%
-	\draw (0.05*\dmatrixSep*\dmatrixHsep,0) --%
-	(\theDsize*\dmatrixSep*\dmatrixHsep+0.05*\dmatrixSep*\dmatrixHsep,0);%
-	\draw (0.05*\dmatrixSep*\dmatrixHsep,-\theDsize*0.5*\dmatrixSep*\dmatrixVsep) -- %
-	(\theDsize*\dmatrixSep*\dmatrixHsep+0.05*\dmatrixSep*\dmatrixHsep,-\theDsize*0.5*\dmatrixSep*\dmatrixVsep);%
+\newcommand{\D@LOH}{% outside horizontal lines
+	\foreach \y in {0, {-0.5*\theD@size*\D@matrixSepVsep}}
+		\draw (0,\y) -- ({\theD@size*\D@matrixSepHsep},\y);%
 }
 
-\newcommand{\DLOV}{%
-	\draw (0.05*\dmatrixSep*\dmatrixHsep,0) -- %
-	(0.05*\dmatrixSep*\dmatrixHsep,-\theDsize*0.5*\dmatrixSep*\dmatrixVsep);%
-	\draw (\theDsize*\dmatrixSep*\dmatrixHsep+0.05*\dmatrixSep*\dmatrixHsep,0) -- %
-	(\theDsize*\dmatrixSep*\dmatrixHsep+0.05*\dmatrixSep*\dmatrixHsep,-\theDsize*0.5*\dmatrixSep*\dmatrixVsep);
+\newcommand{\D@LOV}{% outside vertical lines
+	\foreach \x in {0, {\theD@size*\D@matrixSepHsep}}
+		\draw (\x, 0) -- (\x, {-0.5*\D@matrixSepVsep*\theD@size});%
 }
 
-\newcommand{\DLIH}{%
-	\draw (0.05*\dmatrixSep*\dmatrixHsep,-\xD*0.5*\dmatrixSep*\dmatrixVsep) -- %
-	(\theDsize*\dmatrixSep*\dmatrixHsep+0.05*\dmatrixSep*\dmatrixHsep,-\xD*0.5*\dmatrixSep*\dmatrixVsep);%
+\newcommand{\D@LIH}{% inside horizontal lines
+	\pgfmathparse{\theD@size - 1}\foreach \x in {1,...,\pgfmathresult}
+		\draw (0,{-0.5*\x*\D@matrixSepVsep}) --%
+		({\theD@size*\D@matrixSepHsep},{-0.5*\x*\D@matrixSepVsep});%
 }
 
-\newcommand{\DLIV}{%
-	\draw (\xD*\dmatrixSep*\dmatrixHsep+0.05*\dmatrixSep*\dmatrixHsep,0) -- %
-	(\xD*\dmatrixSep*\dmatrixHsep+0.05*\dmatrixSep*\dmatrixHsep,-\theDsize*0.5*\dmatrixSep*\dmatrixVsep);%
+\newcommand{\D@LIV}{% inside vertical lines
+	\pgfmathparse{\theD@size - 1}\foreach \x in {1,...,\pgfmathresult}
+		\draw ({\x*\D@matrixSepHsep},0) --%
+		({\x*\D@matrixSepHsep},{-\theD@size*0.5*\D@matrixSepVsep});%
 }
 
 \newcommand{\dmatrix}[2][]{%
-	\DsizeMake{#2}%
-	\DheadMake{#2}%
-	%
 	\pgfkeys{/dmatrix, default, #1}%
-	%
-	\ifdmatrixTikz\else%
-	\begin{tikzpicture}%
-	\fi%
-	\foreach [count=\nj] \j in {#2} {%
+	\D@sizeMake{#2}\D@headMake{#2}%
+	\pgfmathsetmacro{\D@matrixSepVsep}{\D@matrixSep*\D@matrixVsep}%
+	\pgfmathsetmacro{\D@matrixSepHsep}{\D@matrixSep*\D@matrixHsep}%
+	\ifD@matrixTikz\else\begin{tikzpicture}\fi%
+	\foreach [count=\nj] \j in {#2}
 		\foreach [count=\ni] \i in {#2} {%
-			\draw node at 
-			( \ni*\dmatrixSep*\dmatrixHsep-0.5*\dmatrixSep*\dmatrixHsep
-			, -\nj*\dmatrixSep*\dmatrixVsep/2+0.25*\dmatrixSep*\dmatrixVsep) {%
-				\Modulo{\Evaluation{\i-\j+\theDfirst}}%
-			};%
+			\pgfmathsetmacro{\D@matrixI}%
+				{int(mod(\i - \j + \theD@head + \theD@size, \theD@size))}%
+			\draw node at ({(\ni-0.5)*\D@matrixSepHsep},%
+				{-0.5*(\nj-0.5)*\D@matrixSepVsep})%
+			{\D@matrixI};%
 		}%
-	}%
-	\foreach \xD in {1,...,\Evaluation{\theDsize-1}} {%
-		\ifdmatrixLines
-		\DLOH\DLOV\DLIH\DLIV
-		\fi
-		\ifdmatrixOutside
-		\DLOH\DLOV
-		\fi
-		\ifdmatrixInside
-		\DLIH\DLIV
-		\fi
-		\ifdmatrixH
-		\DLOH\DLIH
-		\fi
-		\ifdmatrixV
-		\DLOV\DLIV
-		\fi
-	}%
-	%
-	\ifdmatrixTikz\else%
-	\end{tikzpicture}%
-	\fi%
+	\ifD@matrixLines\D@LOH\D@LOV\D@LIH\D@LIV\fi%
+	\ifD@matrixV\D@LOV\D@LIV\fi%
+	\ifD@matrixH\D@LOH\D@LIH\fi%
+	\ifD@matrixO\D@LOH\D@LOV\fi%
+	\ifD@matrixI\D@LIH\D@LIV\fi%
+	\ifD@matrixTikz\else\end{tikzpicture}\fi%
 }
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Diagrams
@@ -160,113 +105,84 @@
 \usetikzlibrary{shapes,arrows,decorations.markings,shapes.misc}
 
 \tikzstyle{ddiagram}=[minimum height=0pt,inner sep=0pt,outer sep=0pt,scale=0.65]
+\tikzset{D@invclip/.style={clip,insert path={{[reset cm] % for inverse clipping
+      (-16383.99999pt,-16383.99999pt) rectangle (16383.99999pt,16383.99999pt)}}}}
 
-\newif\ifddiagramTikz
-\newif\ifddiagramNoNum
-\newif\ifddiagramNoArr
+\newif\ifD@diagramTikz
+\newif\ifD@diagramNoNum
+\newif\ifD@diagramNoArr
 \pgfkeys{
 	/ddiagram/.is family
 	, /ddiagram
 	, default/.style = 
-	{ name =\empty%
-		, up =\empty%
-		, no tikz = false
-		, no numbers = false
-		, no arrow = false
-		, xshift = 0
-		, yshift = 0
-		, arrow shift = 2.5
-	}
-	, no tikz/.is if=ddiagramTikz
-	, no numbers/.is if=ddiagramNoNum
-	, no arrow/.is if=ddiagramNoArr
-	, name/.estore in=\ddiagramName
-	, up/.estore in=\ddiagramUp
-	, xshift/.estore in=\ddiagramX
-	, yshift/.estore in=\ddiagramY
-	, arrow shift/.estore in=\ddiagramArrS
+	{ up =\empty, name =\empty, no tikz = false
+	, no numbers = false, no arrow = false, arrow shift = 2.5 }
+	, no tikz/.is if=D@diagramTikz
+	, no numbers/.is if=D@diagramNoNum
+	, no arrow/.is if=D@diagramNoArr
+	, name/.estore in=\D@diagramName
+	, up/.estore in=\D@diagramUp
+	, arrow shift/.estore in=\D@diagramArrS
 }
 
-\newcounter{Dprev}
-\newcommand{\Dvar}{}
+\newcounter{D@prev}
 \newcommand{\ddiagram}[2][]{%
-	\DsizeMake{#2}%
-	\DheadMake{#2}%
-	%
 	\pgfkeys{/ddiagram, default, #1}%
+	\D@sizeMake{#2}\D@headMake{#2}%
+	\pgfmathsetmacro{\D@up}%
+		{int(\ifx\D@diagramUp\empty\theD@head\else\D@diagramUp\fi)}%
 	%
-	\ifdefequal{\ddiagramUp}{\empty}%
-	{\renewcommand{\Dvar}{\theDfirst}}% if empty
-	{\renewcommand{\Dvar}{\ddiagramUp}}% if not empty
+	\ifD@diagramTikz\else\begin{tikzpicture}[ddiagram]\fi%
+	\begin{scope}[rotate=360*\D@up/\theD@size]%
+	\ifx\D@diagramName\empty\else%
+	\node at (0,0) [circle] {\D@diagramName};%
+	\begin{pgfinterruptboundingbox}%
+		\path[D@invclip] (0,0) ellipse %
+			({0.02*width("\D@diagramName")} and {0.02*height("\D@diagramName")});%
+	\end{pgfinterruptboundingbox}%
+	\fi
 	%
-	\ifddiagramTikz\else%
-	\begin{tikzpicture}[ddiagram,rotate=360*\Dvar/\theDsize]%
-	\fi%
-	\foreach \x in {0,...,\Evaluation{\theDsize-1}} {%
-		\ifddiagramNoNum\else
-		\node [xshift=\ddiagramX,yshift=\ddiagramY] at (90-360*\x/\theDsize:2) {\x};%
-		\fi
-		\node [xshift=\ddiagramX,yshift=\ddiagramY] (\x) at (90-360*\x/\theDsize:1.6) {};%
+	\pgfmathparse{\theD@size - 1}\foreach \x in {0,...,\pgfmathresult} {% numbers
+		\ifD@diagramNoNum\else\node at ({90-360*\x/\theD@size}:2) {\x};\fi%
+		\coordinate (\x) at ({90-360*\x/\theD@size}:1.6);%
+	};
+	\setcounter{D@prev}{-1}%
+	\foreach \x in {#2}{% lines
+		\ifnum\theD@prev=\theD@head% second
+			\draw [decoration={markings,mark=at position 0.099*\D@diagramArrS with
+			{\arrow[scale=1.25,>=triangle 45]{>}}},postaction={decorate}] (\theD@prev) -- (\x);%
+		\else\ifnum\theD@prev>-1\draw (\theD@prev) -- (\x);\fi\fi% third onward
+		\setcounter{D@prev}{\x}%
 	};%
-	%
-	\setcounter{Dprev}{-1}%
-	\foreach \x in {#2}{%
-		\ifnum \theDprev=\theDfirst%
-		\ifddiagramNoArr
-		\draw [xshift=\ddiagramX,yshift=\ddiagramY] (\theDprev) -- (\x);%
-		\else
-		\draw [xshift=\ddiagramX,yshift=\ddiagramY,
-		decoration=
-		{markings,mark=at position 0.099*\ddiagramArrS with
-			{\arrow[scale=1.25,>=triangle 45]{>}}},
-		postaction={decorate}
-		] (\theDprev) -- (\x);%
-		\fi
-		\else \ifnum \theDprev=-1 \else%
-		\draw [xshift=\ddiagramX,yshift=\ddiagramY] (\theDprev) -- (\x);%
-		\fi\fi%
-		\setcounter{Dprev}{\x}%
-	};%
-	\draw [xshift=\ddiagramX,yshift=\ddiagramY] (\theDprev) -- (\theDfirst);%
-	%
-	\ifdefequal{\ddiagramName}{\empty}%
-	{}% if empty
-	{\node [xshift=\ddiagramX,yshift=\ddiagramY] at (0,0) [circle,fill=white] {\ddiagramName};}% if not empty
-	\ifddiagramTikz\else%
-	\end{tikzpicture}%
-	\fi%
+	\draw (\theD@prev) -- (\theD@head);% last
+	\end{scope}%
+	\ifD@diagramTikz\else\end{tikzpicture}\fi%
 }
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Dihedral diagrams
 
-\tikzstyle ddihedralArrow=[decoration=
-{markings,mark=at position 1 with {\arrow[scale=1.5,>=angle 60]{>}}},
-postaction={decorate}]
-
+\tikzstyle{D@dihedralArrow}=
+	[decoration={markings,mark=at position 1 with 
+	{\arrow[scale=1.5,>=angle 60]{>}}},postaction={decorate}]
 \tikzstyle{ddihedral}=[inner sep=0,minimum height=18pt]
 
-\newif\ifddihedralTikz
-\newif\ifddihedralItalics
+\newif\ifD@dihedralTikz
 \pgfkeys{
 	/ddihedral/.is family, /ddihedral,
 	default/.style = 
-		{ t = 0, c = 0, s = 0, v = 0
-		, no tikz=false
-		, new t = T, new c = C, new s = S, new v = V
-		, no italics = false
-		},
-	no tikz/.is if=ddihedralTikz,
-	t/.estore in = \ddihedralT,
-	c/.estore in = \ddihedralC,
-	s/.estore in = \ddihedralS,
-	v/.estore in = \ddihedralV,
-	no italics/.is if=ddihedralItalics,
-	new t/.estore in = \ddihedralNewT,
-	new c/.estore in = \ddihedralNewC,
-	new s/.estore in = \ddihedralNewS,
-	new v/.estore in = \ddihedralNewV,
+		{ t = 0, c = 0, s = 0, v = 0, no tikz=false
+		, new t = T, new c = C, new s = S, new v = V}
+	, t/.estore in = \D@dihedralT
+	, c/.estore in = \D@dihedralC
+	, s/.estore in = \D@dihedralS
+	, v/.estore in = \D@dihedralV
+	, new t/.estore in = \D@dihedralNewT
+	, new c/.estore in = \D@dihedralNewC
+	, new s/.estore in = \D@dihedralNewS
+	, new v/.estore in = \D@dihedralNewV
+	, no tikz/.is if=D@dihedralTikz
 }
 
 \newif\ifdarrowsTikz
@@ -275,64 +191,46 @@ postaction={decorate}]
 	default/.style = {no tikz=false},
 	no tikz/.is if=darrowsTikz,
 }
+
 \newcommand{\darrows}[2][]{%
-	\DsizeMake{#2}%
-	%
 	\pgfkeys{/darrows, default, #1}%
-	%
-	\ifdarrowsTikz\else%
-	\begin{tikzpicture}%
-	\fi%
-	\draw foreach \x in {0,...,\Evaluation{\theDsize-1}} {%
-		(90-360*\x/\theDsize:2.5) node[circle] (\x) {}%
-	};%
-	\foreach \x [count=\y] in {#2} {%
-		\draw [style=ddihedralArrow] (90-360*\Evaluation{\y-1}/\theDsize:1.25) -- (\x);%
-	};%
-	\ifdarrowsTikz\else%
-	\end{tikzpicture}%
-	\fi%
+	\D@sizeMake{#2}%
+	\ifdarrowsTikz\else\begin{tikzpicture}\fi%
+	\pgfmathparse{\theD@size - 1}\foreach \x in {0,...,\pgfmathresult}%
+		\draw ({90-360*\x/\theD@size}:2.5) node[circle] (\x) {};%
+	\foreach \x [count=\y] in {#2}%
+		\draw[style=D@dihedralArrow] ({90-360*(\y-1)/\theD@size}:1.25) -- (\x);%
+	\ifdarrowsTikz\else\end{tikzpicture}\fi%
 }
 
 \newcommand\ddihedral[2][]{%
-	\DsizeMake{#2}%
-	%
 	\pgfkeys{/ddihedral, default, #1}%
+	\D@sizeMake{#2}%
 	%
-	\ifddihedralTikz\else%
-	\begin{tikzpicture}[ddihedral]%
-	\fi%
-	\draw foreach \x in {0,...,\Evaluation{\theDsize-1}} {%
-		(\Evaluation{(90+\ddihedralT*360/\theDsize)+(2*\ddihedralS-1)*\x*360/\theDsize}:2.5)%
-		node[very thin,circle,draw] (\x) {\x}%
-	};%
-	%
-	\draw foreach \x in {0,...,\Evaluation{\theDsize-1}} {%
-		(\Evaluation{(90-\ddihedralC*360/\theDsize)+(2*\ddihedralV-1)*\x*360/\theDsize}:1.25)%
-		node[very thin,circle,draw] {\x}%
-	};%
-	%
-	\darrows[no tikz]{#2}%
-	%
-	\node at (0,0) [very thin,draw,circle, fill=white] {%
-	{\ifddihedralItalics\else\it\fi%
-		\ifodd\ddihedralV%
-		\ddihedralNewV\else%
-		\ifnum\ddihedralC=0%
-		\ifodd\ddihedralS\else%
-		\ifnum\ddihedralT=0%
-		\ddihedralNewT$^0$%
+	\ifD@dihedralTikz\else\begin{tikzpicture}[ddihedral]\fi%
+		\def\D@dihedralName{%
+		\ifodd\D@dihedralV{\D@dihedralNewV}\else%
+		\ifnum\D@dihedralC=0%
+		\ifodd\D@dihedralS\else%
+		\ifnum\D@dihedralT=0{\D@dihedralNewT$^0$}%
 		\fi\fi\fi\fi%
-		\ifnum\ddihedralC=0%
-		\else \ddihedralNewC$^{\ddihedralC}$\fi%
-		\ifodd\ddihedralS%
-		\ddihedralNewS\fi%
-		\ifnum\ddihedralT=0%
-		\else \ddihedralNewT$^{\ddihedralT}$\fi}%
-	};%
-	\ifddihedralTikz\else%
-	\end{tikzpicture}%
-	\fi%
+		\ifnum\D@dihedralC=0\else\D@dihedralNewC$^{\D@dihedralC}$\fi%
+		\ifodd\D@dihedralS{\D@dihedralNewS}\fi%
+		\ifnum\D@dihedralT=0\else\D@dihedralNewT$^{\D@dihedralT}$\fi%
+		}
+	\node at (0,0) [very thin,draw,circle,inner sep=1pt] {\D@dihedralName};%
+	\begin{pgfinterruptboundingbox}%
+		\path[D@invclip] (0,0) circle %
+			({0.02*width("\D@dihedralName")} and {0.02*height("\D@dihedralName")});%
+	\end{pgfinterruptboundingbox}%
+	\pgfmathparse{\theD@size - 1}\foreach \x in {0,...,\pgfmathresult} {%
+		\draw ({90+(\D@dihedralT + (2*\D@dihedralS-1)*\x)*360/\theD@size}:2.5)%
+		node[very thin,circle,draw] {\x};%
+		\draw ({90-(\D@dihedralC+(2*\D@dihedralV-1)*\x*360/\theD@size)}:1.25)%
+		node[very thin,circle,draw] {\x};%
+	}%
+	\darrows[no tikz]{#2}%
+	\ifD@dihedralTikz\else\end{tikzpicture}\fi%
 }
 
 
@@ -342,48 +240,34 @@ postaction={decorate}]
 \pgfkeys{
 	/drow/.is family, /drow,
 	default/.style = {sep=\arraycolsep},
-	sep/.estore in = \drowSep,
+	sep/.estore in = \D@rowSep,
 }
 
-\long\def\addto#1#2{\expandafter\def\expandafter#1\expandafter{#1#2}}
-\newcounter{myDDcntr}
-\newlength{\Dvarr}
-
+\long\def\D@concat#1#2{\expandafter\def\expandafter#1\expandafter{#1#2}}
+\newlength{\D@ogsep}
 \newcommand{\drow}[2][]{%
-	\DsizeMake{#2}%
-	%
 	\pgfkeys{/drow, default, #1}%
-	\setlength{\Dvarr}{\arraycolsep}
-	\setlength{\arraycolsep}{\drowSep}
+	\D@sizeMake{#2}%
+	\setlength{\D@ogsep}{\arraycolsep}\setlength{\arraycolsep}{\D@rowSep}%
 	%
-	\ifnum\theDsize=0%
-	\ensuremath{\left(\right)}%
-	\else\ifnum\theDsize=1%
-	\ensuremath{%
-		\left(\begin{array}{*{\theDsize}c}%
-			0\\%
-			#2\\%
-		\end{array}\right)%
-	}%
+	\ifnum\theD@size=0{\ensuremath{\left(\right)}}%
+	\else\ifnum\theD@size=1
+	\ensuremath{\left(\begin{array}{*{\theD@size}c}0\\0\\\end{array}\right)}%
 	\else%
-	\def\TableDDdata{}%
-	\setcounter{myDDcntr}{0}%
-	\loop%
-	\addto\TableDDdata{\themyDDcntr\stepcounter{myDDcntr} &}%
-	\stepcounter{myDDcntr}%
-	\ifnum\themyDDcntr<\Evaluation{\theDsize-1}%
-	\repeat%
-	\addto\TableDDdata{\themyDDcntr \\}%
-	\setcounter{myDDcntr}{0}%
-	%
-	\ensuremath{%
-		\left(\begin{array}{*{\theDsize}c}%
-			\TableDDdata%
-			\StrSubstitute{#2}{,}{&}\\%
-		\end{array}\right)%
+	\global\def\D@firstrow{}\global\def\D@secondrow{}%
+	\foreach \x [count=\i from 0] in {#2} {%
+		\ifnum\i>0 
+			\xdef\D@firstrow{\D@firstrow & \i} 
+			\xdef\D@secondrow{\D@secondrow & \x}%
+		\else 
+			\xdef\D@firstrow{\i} 
+			\xdef\D@secondrow{\x}
+		\fi%
 	}%
-	\fi\fi%
-	\setlength{\arraycolsep}{\Dvarr}
+	\ensuremath{\left(\begin{array}{*{\theD@size}c}%
+			\D@firstrow \\ \D@secondrow \\ \end{array}\right)}%
+	\fi%
+	\setlength{\arraycolsep}{\D@ogsep}%
 }
 
 \endinput

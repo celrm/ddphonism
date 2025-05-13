@@ -3,21 +3,19 @@
 \usepackage{hyperref}
 \usepackage{multicol}
 \usepackage{listings}
-
 \usepackage{ddphonism}
 
 \title{The \textsf{ddphonism} package\footnote{This
-		document corresponds to \textsf{ddphonism} v0.2, dated 2019/09/01.}}
-\author{Celia Rubio Madrigal\footnote{Email: \href{mailto:celirubio.m@gmail.com}{\texttt{celirubio.m@gmail.com}}}}
-\date{September 1, 2019}
-
+		document corresponds to \textsf{ddphonism} v0.3, dated 2025/05/13.}}
+\author{Celia Rubio Madrigal\footnote{Email: rubiomadrigalcelia (at) gmail (dot) com}}
+\date{May 13, 2025}
 
 \begin{document}
 	
 	\maketitle
 	
 	\begin{abstract}
-		This is a music-related package focused on notation from the Twelve-Tone System, also called Dodecaphonism. It provides \LaTeX{} algorithms that produce typical dodecaphonic diagrams based off a musical series, or row sequence, of variable length.
+		This music-related package focuses on notation from the Twelve-Tone System, also called Dodecaphonism. It provides \LaTeX{} algorithms to generate common dodecaphonic diagrams based off a musical series, or row sequence, of arbitrary length.\footnote{The code is also hosted at \url{https://github.com/celrm/ddphonism}.}
 		
 		\begin{center}
 			\textbf{Keywords}
@@ -27,14 +25,26 @@
 	\end{abstract}
 
 	\tableofcontents
+
+	\clearpage
 	
 	\section{Introduction}
-	There are hundreds of music tools and software online which are able to produce different music notations. However, I have never seen a \LaTeX{} tool that can do the same. This package is not only about notation, but it also calculates mathematically how this notation should work.
+	There are hundreds of music tools and software available online that can produce various types of music notation. However, I have not yet seen a \LaTeX{} tool that does the same for twelve-tone music. This package is not only about notation, but it also performs the mathematical calculations behind how the notation should work.
 	
-	It is said that a twelve-tone matrix is the only thing a twelve-tone composer should need, because it provides the whole serial spectrum with which they may work. I wanted \LaTeX{} users to be able to generate them automatically.
-	
-	But I also think that a twelve-tone matrix is not enough, that there exist several other notations with which they may understand their series and their potential. These are the diagrams that can be obtained with this package:
-	
+	It is said that a twelve-tone matrix is the only thing a twelve-tone composer needs, because it provides the full serial spectrum they can work with. I wanted \LaTeX{} users to be able to generate these automatically.
+
+	But I also think that a twelve-tone matrix is not enough, that there are other notations that can help composers better understand their series and their potential. These are the kinds of diagrams this package can produce:
+
+	\subsection{Examples}
+
+	{\footnotesize\begin{verbatim}
+	\dmatrix{4,3,2,1,0}     \ddiagram[arrow shift = 4]{4,5,7,1,6,3,8,2,11,0,9,10}
+
+	\ddihedral{4,5,7,1,6,3,8,2,11,0,9,10}     \darrows{4,5,7,1,6,3,8,2,11,0,9,10}
+
+											\drow{4,3,2,1,0}
+	\end{verbatim}}
+
 	\begin{multicols}{2}
 		\dmatrix{4,3,2,1,0}
 		
@@ -47,140 +57,169 @@
 		\bigskip
 		\drow{4,3,2,1,0}
 	\end{multicols}
-	
+
 	\section{Using the \textsf{ddphonism} package}
-	These are the commands provided by \textsf{ddphonism}. The main parameter in every command is the row sequence.
-	
+	These are the commands provided by \textsf{ddphonism}, along with their options and examples of usage. The main parameter for every command is the main (original) row sequence. It is a comma-separated list of integers. An optional parameter can be added to include other Tikz options, such as \textsf{scale} or \textsf{rotate}.
+
 	\newcommand{\I}[1]{\item[\texttt{$\backslash$#1}]\quad}	
 	\newcommand{\Ii}[1]{\item[\textsf{#1}]\quad}
+	
+	\subsection{\textbackslash dmatrix}
 	\begin{itemize}
-		\I{dmatrix} produces a twelve-tone matrix of arbitrary length, as shown in \href{https:matrices.netlify.com}{this website}. For example, \verb|\dmatrix{0,2,1,4,3,6,5}| produces the matrix \dmatrix{0,2,1,4,3,6,5}
+		\I{dmatrix} produces a twelve-tone matrix of arbitrary length (as seen \href{https://celrm.github.io/matrices/}{here}). 
 
+		\item[Options:]
 		\begin{itemize}
-			\Ii{sep} scales the matrix.
-			\Ii {vsep} scales the matrix vertically.
-			\Ii {hsep} scales the matrix horizontally.
-			\Ii{lines} draws lines between rows and columns.
-			\Ii{outside lines} only draws the outside lines.
-			\Ii{inside lines} only draws the inside lines.
-			\Ii{vlines} only draws the vertical lines.
-			\Ii{hlines} only draws the horizontal lines.
+			\Ii{sep} adjusts general spacing.
+			\Ii{vsep} adjusts vertical spacing.
+			\Ii{hsep} adjusts horizontal spacing.
+			\Ii{lines} draws all lines surrounding rows and columns.
+			\Ii{outside lines} draws only the outer box.
+			\Ii{inside lines} draws only the internal grid.
+			\Ii{vlines} draws only vertical lines.
+			\Ii{hlines} draws only horizontal lines.
+			\Ii{no tikz} disables automatic TikZ environment, letting the user type it:
+			\begin{verbatim}
+			\begin{tikzpicture}
+			\dmatrix[no tikz]{0,2,1,4,3,6,5}
+			\end{tikzpicture}
+			\end{verbatim} produces the same as \verb|\dmatrix{0,2,1,4,3,6,5}|.
 		\end{itemize}
-		\verb|\dmatrix[lines,sep=0.75]{0,2,1,4,3,6,5}| produces the matrix
 		
+		\item[Example:] \verb|\dmatrix{0,2,1,4,3,6,5}|
+		
+		\dmatrix{0,2,1,4,3,6,5}
+		
+		\item[Example:] \verb|\dmatrix[lines,sep=0.75]{0,2,1,4,3,6,5}|
+				
 		\dmatrix[lines,sep=0.75]{0,2,1,4,3,6,5}
 		
+	\end{itemize}
+		
+	\subsection{\textbackslash ddiagram}
+	\begin{itemize}
+		\I{ddiagram} produces a twelve-tone clock diagram of arbitrary length, (as seen \href{https://celrm.github.io/diagramas/}{here}).
+
+		\item[Options:]
 		\begin{itemize}
-			\Ii{no tikz} deletes the tikz environment and lets the user write it instead.
-		\end{itemize}
-		
-		\I{ddiagram} produces a twelve tone clock diagram of arbitrary length, as shown in \href{https:diagramas.netlify.com}{this website}. For example, \verb|\ddiagram{0,2,1,4,3,6,5}| produces the diagram\\ 
-		\ddiagram{0,2,1,4,3,6,5}
-		
-		\begin{itemize}
-			\Ii{name} writes a name at the center of the diagram.
-			\Ii{up} lets the user choose which number is up north. The default value is the first number in the row.
-			\Ii{arrow shift} lets the user choose where the arrow should fall on the line. The values range from 0 to 10. The default value is 2.5.
-		\end{itemize}
-		
-		\verb|\ddiagram[name=P, up=5, arrow shift=5]{0,2,1,4,3,6,5}| produces the diagram\\
-		\ddiagram[name=P, up=5, arrow shift=5]{0,2,1,4,3,6,5}
-		
-		
-		\begin{itemize}
-			\Ii{no numbers} deletes the numbers around the diagram.
-			\Ii{no arrow} deletes the arrow inside the diagram.
-		\end{itemize}
-		
-		\verb|\ddiagram[no numbers, no arrow]{0,2,1,4,3,6,5}| produces the diagram\\
-		\ddiagram[no numbers, no arrow]{0,2,1,4,3,6,5}
-		
-		\begin{itemize}
-			\Ii{xshift} shifts the figure horizontally.
-			\Ii{yshift} shifts the figure vertically.
-			\Ii{no tikz} deletes the tikz environment and lets the user write it instead.
-			The option \textsf{up} does not work anymore and the up position becomes 0.
-			It is recommended that the user passes the option \textsf{ddiagram} to the environment:
+			\Ii{up} specifies the number at the top (default is the first in the row).
+			\Ii{arrow shift} adjusts arrow position on the line (default is 2.5, range 0-10).
+			\Ii{name} adds a label at the center.
+			\Ii{no numbers} hides the surrounding numbers.
+			\Ii{no arrow} hides the arrow.
+			\Ii{no tikz} disables automatic TikZ environment, letting the user type it. It is recommended to pass \textsf{ddiagram} to the user's TikZ environment:
 			\begin{verbatim}
 			\begin{tikzpicture}[ddiagram]
 			\ddiagram[no tikz]{0,2,1,4,3,6,5}
 			\end{tikzpicture}
-			\end{verbatim} produces the same diagram as  \verb|\ddiagram{0,2,1,4,3,6,5}|.
+			\end{verbatim} produces the same as \verb|\ddiagram{0,2,1,4,3,6,5}|.
 		\end{itemize}
 		
-		\I{ddihedral} produces a dihedral representation of a series of arbitrary length. For example, \verb|\ddihedral{0,2,1,4,3,6,5}| produces the diagram\\
-		\ddihedral{0,2,1,4,3,6,5}
+		\item[Example:] \verb|\ddiagram{0,2,1,4,3,6,5}|
+
+		\ddiagram{0,2,1,4,3,6,5}
 		
+		\item[Example:] \verb|\ddiagram[name=P, up=5, arrow shift=5]{0,2,1,4,3,6,5}|
+		
+		\ddiagram[name=P, up=5, arrow shift=5]{0,2,1,4,3,6,5}
+		
+	\end{itemize}
+		
+	\subsection{\textbackslash ddihedral}
+	\begin{itemize}
+		\I{ddihedral} produces a ``dihedral" representation of a series of arbitrary length (introduced in \href{https://divulgamat.net/divulgamat15/index.php?view=article&catid=67:ma-y-matemcas&id=18227:101-octubre-19-serialismo-y-matematicas-ii}{this article} to illustrate the transformations' group structure).
+		
+		\item[Options:]
 		\begin{itemize}
-			\Ii{t} applies the transformation \textit{transposition} to the diagram.
-			\Ii{s} applies the transformation \textit{inversion} to the diagram.
-			\Ii{c} applies the transformation \textit{cyclic shift} to the diagram.
-			\Ii{v} applies the transformation \textit{retrograde} to the diagram.
+			\Ii{t} applies the transformation \textit{transposition}.
+			\Ii{s} applies the transformation \textit{inversion}.
+			\Ii{c} applies the transformation \textit{cyclic shift}.
+			\Ii{v} applies the transformation \textit{retrograde}.
 			
-			The transformations are applied in that exact order.
-		\end{itemize}
-		
-		 \verb|\ddihedral[s=1, c=4]{0,2,1,4,3,6,5}| produces the diagram\\
-		\ddihedral[s=1, c=4]{0,2,1,4,3,6,5}
-		
-		\begin{itemize}
-			\Ii{no italics} removes the italics from the diagram name.
-			\Ii{new t} renames the transformation \textit{transposition}.
-			\Ii{new s} renames the transformation \textit{inversion}.
-			\Ii{new c} renames the transformation \textit{cyclic shift}.
-			\Ii{new v} renames the transformation \textit{retrograde}.
-		\end{itemize}
-	
-	\verb|\ddihedral[no italics, new v=R, v=1]{0,2,1,4,3,6,5}| produces the diagram\\
-	\ddihedral[no italics, new v=R, v=1]{0,2,1,4,3,6,5}
-	
-		\begin{itemize}
-			\Ii{no tikz} deletes the tikz environment and lets the user write it instead. It is recommended that the user passes the option \textsf{ddihedral} to the environment:
+			These transformations are applied in this exact order: \texttt{t}, \texttt{s}, \texttt{c}, \texttt{v}. 
+			
+			\Ii{new t, new s, new c, new v} rename respective transformations on the label.
+			\Ii{no tikz} disables automatic TikZ environment, letting the user type it. It is recommended to pass \textsf{ddihedral} to the user's TikZ environment:
 			\begin{verbatim}
 			\begin{tikzpicture}[ddihedral]
 			\ddihedral[no tikz]{0,2,1,4,3,6,5}
 			\end{tikzpicture}
-			\end{verbatim} produces the same diagram as  \verb|\ddihedral{0,2,1,4,3,6,5}|.
+			\end{verbatim} produces the same as \verb|\ddihedral{0,2,1,4,3,6,5}|.
 		\end{itemize}
 		
-		\I{darrows} produces the arrows from the \verb|\ddihedral| diagram. For example,
- 		\verb|\darrows{0,2,1,4,3,6,5}| produces the arrows\\
- 		\darrows{0,2,1,4,3,6,5}
+		\item[Example:] \verb|\ddihedral{0,2,1,4,3,6,5}|
+		
+		\ddihedral{0,2,1,4,3,6,5}
+
+		\item[Example:] \verb|\ddihedral[s=1, c=4]{0,2,1,4,3,6,5}|
+		
+		\ddihedral[s=1, c=4]{0,2,1,4,3,6,5}
+		
+		\item[Example:] \verb|\ddihedral[new v=R, v=1]{0,2,1,4,3,6,5}|
+
+		\ddihedral[new v=R, v=1]{0,2,1,4,3,6,5}
+
+		
+		\I{darrows} draws the arrows from \verb|\ddihedral| (which represent the row's orbit).
  		
  		\begin{itemize}
- 			\Ii{no tikz} deletes the tikz environment and lets the user write it instead.
+ 			\Ii{no tikz} disables automatic TikZ environment, letting the user type it.
  		\end{itemize}
+
+		\item[Example:] \verb|\darrows{0,2,1,4,3,6,5}|
 		
-		\I{drow} produces a twelve-tone row sequence as a permutation in its matrix form. For example, \verb|\drow{0,2,1,4,3,6,5}| produces the row
+		\darrows{0,2,1,4,3,6,5}
+		
+	\end{itemize}
+	
+	\subsection{\textbackslash drow}
+	\begin{itemize}
+
+		\I{drow} produces a twelve-tone row sequence as a mathematical permutation in its matrix form (using an \textit{array} environment). 
+
+		\item[Options:]
+		\begin{itemize}
+			\Ii{sep} adjusts column spacing.
+		\end{itemize}
+
+		\item[Example:] \verb|\drow{0,2,1,4,3,6,5}|
 		
 		\drow{0,2,1,4,3,6,5}
-		
-		\begin{itemize}
-			\Ii{sep} lets the user choose the column separation.
-		\end{itemize}
-		
-		\verb|\drow[sep=10pt]{0,2,1,4,3,6,5}| produces the row
+
+		\item[Example:] \verb|\drow[sep=10pt]{0,2,1,4,3,6,5}|
 		
 		\drow[sep=10pt]{0,2,1,4,3,6,5}
 		
 	\end{itemize}
 	
+	\section{Notes from the author}
+	This package was created to support the articles written for the DivulgaMAT journal (in Spanish), under the column \textit{Matemáticas y Música}:
+	\begin{itemize}
+		\item \href{https://divulgamat.net/divulgamat15/index.php?view=article&catid=67:ma-y-matemcas&id=18209:100-septiembre-2019-serialismo-y-matematicas-i}{100. (Septiembre 2019) Serialismo y matemáticas (I)}
+		\begin{itemize}
+			\item Introduces the \verb|\dmatrix| and \verb|\drow| commands.
+		\end{itemize}
+		\item \href{https://divulgamat.net/divulgamat15/index.php?view=article&catid=67:ma-y-matemcas&id=18227:101-octubre-19-serialismo-y-matematicas-ii}{101. (Octubre 2019) Serialismo y matemáticas (II)}
+		\begin{itemize} 
+			\item Introduces the \verb|\ddiagram|, \verb|\darrows|, and \verb|\ddihedral| commands. The \verb|\ddihedral| command is here invented to illustrate the dihedral $\times$ dihedral group structure of the four historical transformations of a twelve-tone series.
+		\end{itemize}
+		\item \href{https://divulgamat.net/divulgamat15/index.php?view=article&catid=67:ma-y-matemcas&id=18258:102-noviembre-19-serialismo-y-matematicas-iii}{102. (Noviembre 2019) Serialismo y matemáticas (III)}
+		\item \href{https://divulgamat.net/divulgamat15/index.php?view=article&catid=67:ma-y-matemcas&id=18273:103-diciembre-19-re-escalando-musica}{103. (Diciembre 2019) Re-escalando música}
+		\end{itemize}
+
 	\section{The package code}	
 	\lstset{
 		language=[Latex]Tex,
-		%
 		basicstyle=\footnotesize\sffamily,
 		keywordstyle=\footnotesize\sffamily,
 		identifierstyle=\footnotesize\sffamily,
 		commentstyle=\footnotesize\sffamily,
 		stringstyle=\footnotesize\sffamily,
 		escapechar=¬,
-		%		
-		numberstyle=\footnotesize\sffamily,%\ttfamily\tiny\color[gray]{0.3},
+		numberstyle=\footnotesize\sffamily,
 		numbers=left,
 		stepnumber=2,
 		numbersep=15pt,
-		%
 		columns=flexible,
 		showstringspaces=false,
 		tabsize=4,
